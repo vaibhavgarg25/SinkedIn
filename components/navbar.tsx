@@ -22,11 +22,6 @@ export function Navbar() {
                 <Home className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href="/messages">
-              <Button variant="ghost" size="icon">
-                <MessageSquare className="h-[1.2rem] w-[1.2rem]" />
-              </Button>
-            </Link>
             <Button variant="ghost" size="icon">
               <Bell className="h-[1.2rem] w-[1.2rem]" />
             </Button>
