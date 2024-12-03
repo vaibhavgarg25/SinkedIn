@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, Bell, User, Briefcase } from "lucide-react";
+import { Home, MessageSquare, Bell, User, Briefcase} from "lucide-react";
+import { useState } from "react";
 
 export function Navbar() {
+  const[loggedin,isloggedin]=useState(false);
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 justify-between mx-auto items-center">
@@ -33,12 +35,16 @@ export function Navbar() {
                 <Bell className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href="/profile">
-              <Button variant="ghost" size="icon" title="Profile">
-                <User className="h-[1.2rem] w-[1.2rem]" />
-              </Button>
-            </Link>
             <ThemeToggle />
+            <Link href={loggedin ? "/profile" : "/login"}>
+              {loggedin ? (
+                <Button variant="ghost" size="icon" title="Profile">
+                  <User className="h-[1.2rem] w-[1.2rem]" />
+                </Button>
+              ) : (
+                <Button size="sm">Login</Button>
+              )}
+            </Link>
           </div>
         </div>
       </div>

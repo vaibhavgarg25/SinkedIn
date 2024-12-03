@@ -2,7 +2,7 @@ import React from "react";
 import { Header } from "../../components/layout/header"; // Ensure correct path
 import { LeftSidebar } from "../../components/sidebar/leftsidebar";
 import { RightSidebar } from "../../components/sidebar/rightsidebar";
-import { Feed } from "../../components/feed/feed "; // Fixed the extra space in the import path
+import { Feed } from 
 
 function App() {
   return (
