@@ -36,7 +36,7 @@ export default function Feed() {
           <LeftSidebar />
         </div>
         
-        <main className="h-screen overflow-y-auto max-w-2xl mx-auto space-y-6 no-scrollbar">
+        <main className="flex-1 ml-96 h-screen overflow-y-auto max-h-[calc(100vh-120px)] scrollbar-hide max-w-2xl no-scrollbar">
         <CreatePost />
         {samplePosts.map((post) => (
           <PostCard key={post.id} {...post} />
