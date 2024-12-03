@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/layout/navbar";
 import { AuthProvider } from '@/contexts/AuthContext';
-
+import Chatbot from "@/components/chatbot";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function RootLayout({
@@ -25,6 +25,7 @@ export default function RootLayout({
           {children}
           </AuthProvider>
         </ThemeProvider>
+        <Chatbot/>
       </body>
     </html>
   );
