@@ -5,8 +5,56 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+import { 
+  GoogleAuthProvider, 
+  GithubAuthProvider, 
+  signInWithPopup 
+} from "firebase/auth";
+import { getAuth } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebase";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login } = useAuth();
+  const router = useRouter();
+  const auth = getAuth(firebaseApp);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await login(email, password);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const handleGitHubSignIn = async () => {
+    const provider = new GithubAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center">
       <motion.div 
@@ -20,18 +68,37 @@ export default function Login() {
           <p className="text-muted-foreground">Enter your credentials to access your account</p>
         </div>
 
-        <form className="space-y-4">
+        {error && (
+          <div className="text-red-500 text-center">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="john@example.com" />
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="john@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" />
+            <Input 
+              id="password" 
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
 
-          <Button className="w-full" size="lg">
+          <Button type="submit" className="w-full" size="lg">
             Sign In
           </Button>
         </form>
@@ -52,8 +119,20 @@ export default function Login() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline">Google</Button>
-          <Button variant="outline">GitHub</Button>
+          <Button 
+            type="button"
+            variant="outline"
+            onClick={handleGoogleSignIn}
+          >
+            Google
+          </Button>
+          <Button 
+            type="button"
+            variant="outline"
+            onClick={handleGitHubSignIn}
+          >
+            GitHub
+          </Button>
         </div>
 
         <p className="text-center text-sm">
