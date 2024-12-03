@@ -9,37 +9,78 @@ import { useState } from "react";
 import { db, auth } from "@/lib/firebase"; // Import Firestore and Auth instances
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore"; // Firestore functions
 
-export function CreatePost() {
-  const [postContent, setPostContent] = useState(""); 
-  const [userId, setUserId] = useState<string>("userId");
 
-  // Function to handle post submission
+export function CreatePost() {
+  const [flag, setFlag] = useState(false)
+  const [post, setPost] = useState('');
+  const [isSad, setIsSad] = useState<null | string>(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+    const [val, setVal] = useState<string>("")
+  const [postContent, setPostContent] = useState(""); // State for post content
+  // const [userId, setUserId] = useState<string>("userId"); // Set userId (replace with actual user ID)
+
   const handlePostSubmit = async () => {
+    setLoading(true);
+    setIsSad(null); // Reset sad state
+    
     if (postContent.trim()) {
       try {
-        // Check if the user is authenticated
         const currentUser = auth.currentUser;
-        if (currentUser) {
-          const userId = currentUser.uid; // Get the authenticated user's UID
-
-          // Reference to the user's posts subcollection in Firestore
-          const postsRef = collection(doc(db, "users", userId), "posts");
-
-          // Add the new post to the user's posts subcollection
+  
+        if (!currentUser) {
+          console.error("No user is logged in.");
+          setLoading(false);
+          return;
+        }
+  
+        // const userId = currentUser.uid; 
+  
+        const response = await fetch('http://localhost:8000/feed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ post: postContent }), // Ensure the correct data is sent
+        });
+        console.log(response)
+        if (!response.ok) {
+          throw new Error('Failed to analyze sentiment');
+        }
+        
+        let data = await response.json();
+        console.log(data)
+        console.log(typeof(data))
+        if (data.trim() === '0') {
+          setFlag(false);
+        } else if (data.trim() === '1') {
+          setFlag(true);
+        } else {
+          setFlag(false);
+          console.log("bak")
+        }
+  
+        console.log("Flag value:", flag);
+  
+        if (flag) {
+          const postsRef = collection(doc(db, "users", currentUser.uid), "posts");
+  
           await addDoc(postsRef, {
             content: postContent,
-            timestamp: serverTimestamp(), // Automatically set timestamp
-            userName: currentUser.displayName || "Anonymous", // Get the user's name or use "Anonymous"
+            timestamp: serverTimestamp(),
+            userName: currentUser.displayName || "Anonymous",
           });
-
-          // Clear the content after posting
-          setPostContent("");
-        } else {
-          console.log("No user is logged in.");
+          setFlag(!flag)
+          setPostContent(""); // Clear input field
         }
+        
+        console.log("Current User:", currentUser);
       } catch (error) {
-        console.error("Error adding post:", error);
+        console.error("Error processing post:", error);
+      } finally { 
+        setLoading(false);
       }
+    } else {
+      console.error("Post content is empty.");
+      setLoading(false);
     }
   };
 
