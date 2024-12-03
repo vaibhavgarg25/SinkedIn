@@ -17,10 +17,6 @@ interface UserData {
 }
 
 export default function Profile() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true); // To handle loading state
   const [isClient, setIsClient] = useState(false); // To check if it’s client-side rendering
@@ -81,7 +77,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="container mx-auto my-16 px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -106,7 +102,7 @@ export default function Profile() {
                       <span>Parents' Basement, Somewhere</span>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleOpenModal}>
+                  <Button variant="outline" size="sm">
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit Failures
                   </Button>
@@ -158,17 +154,12 @@ export default function Profile() {
                     Failure Highlights
                   </h3>
                   <div className="flex gap-2 flex-wrap">
-                    {[
-                      "Missed Deadlines",
-                      "Bug Creation",
-                      "Meeting Mishaps",
-                      "Failed Interviews",
-                      "Awkward Small Talk",
-                      "Code Disasters",
-                    ].map((skill) => (
-                      <span key={skill} className="px-3 py-1 bg-muted rounded-full text-sm">
-                        {skill}
-                      </span>
+                    {["Missed Deadlines", "Bug Creation", "Meeting Mishaps", 
+                      "Failed Interviews", "Awkward Small Talk", "Code Disasters"]
+                      .map((skill) => (
+                        <span key={skill} className="px-3 py-1 bg-muted rounded-full text-sm">
+                          {skill}
+                        </span>
                     ))}
                   </div>
                 </div>
@@ -183,80 +174,6 @@ export default function Profile() {
             </div>
           </Card>
         </motion.div>
-
-        <AnimatePresence>
-          {isModalOpen && (
-            <motion.div
-              className="fixed inset-0 bg-[rgba(0,0,0,0.83)] flex justify-center items-center z-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ margin: 0, padding: 0 }}
-            >
-              <motion.div
-                className="bg-background p-6 rounded-lg w-96 shadow-lg"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <h2 className="text-2xl font-semibold mb-4">Edit Profile</h2>
-                <form>
-                  <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      className="mt-1 block w-full p-2 border border-border rounded-lg"
-                      defaultValue="John Doe"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                      Location
-                    </label>
-                    <input
-                      id="bio"
-                      className="mt-1 block w-full p-2 border border-border rounded"
-                      defaultValue="Parents' Basement, Somewhere"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                      Recently Resigned From
-                    </label>
-                    <input
-                      id="bio"
-                      className="mt-1 block w-full p-2 border border-border rounded"
-                      defaultValue="Tech Corp"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                      Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      className="mt-1 block w-full p-2 border border-border rounded no-scrollbar"
-                      defaultValue="Professional failure enthusiast."
-                    />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button variant="outline" size="sm" onClick={handleCloseModal}>
-                      Cancel
-                    </Button>
-                    <Button variant="ghost" size="sm" className="ml-2">
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

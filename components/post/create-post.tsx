@@ -10,8 +10,8 @@ import { db, auth } from "@/lib/firebase"; // Import Firestore and Auth instance
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore"; // Firestore functions
 
 export function CreatePost() {
-  const [postContent, setPostContent] = useState(""); // State for post content
-  const [userId, setUserId] = useState<string>("userId"); // Set userId (replace with actual user ID)
+  const [postContent, setPostContent] = useState(""); 
+  const [userId, setUserId] = useState<string>("userId");
 
   // Function to handle post submission
   const handlePostSubmit = async () => {
