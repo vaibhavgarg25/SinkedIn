@@ -6,7 +6,7 @@ import { RightSidebar } from "../../components/sidebar/rightsidebar";
 function App() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <Header />
+      {/* <Header /> */}
       <div className="pt-16 grid grid-cols-1 lg:grid-cols-[250px,1fr,250px] gap-4">
         {/* Left Sidebar */}
         <div className="lg:block">
