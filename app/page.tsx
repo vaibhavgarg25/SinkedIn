@@ -3,10 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowRight, ThumbsDown, Users, Coffee } from "lucide-react";
+
 import Link from "next/link";
 
 export default function Home() {
-  return (
+  return (  
     <div className="min-h-screen flex flex-col items-center justify-center">
       <main className="container mx-auto px-6 py-16">
         <motion.div 
