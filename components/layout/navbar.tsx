@@ -7,7 +7,7 @@ import { Home, MessageSquare, Bell, User, Briefcase} from "lucide-react";
 import { useState } from "react";
 
 export function Navbar() {
-  const[loggedin,isloggedin]=useState(false);
+  const[loggedin,isloggedin]=useState(true);
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 justify-between mx-auto items-center">
