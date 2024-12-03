@@ -6,27 +6,56 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
-import { auth ,googleProvider} from '../../firebase';
-
-import {
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-} from 'firebase/auth';
-
+import { useRouter } from "next/navigation";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  GithubAuthProvider 
+} from "firebase/auth";
+import { getAuth } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Signup() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { signup } = useAuth();
+  const router = useRouter();
+  const auth = getAuth(firebaseApp);
 
-  const [email,setemail]=useState("");
-  const [password,setpass]=useState("");
-
-  const signupWithGoogle = () => {
-    signInWithPopup(auth, googleProvider).then((e) => {
-      // toast.success('Welcome')
-      // navigate('/buyer');  
-      alert("success")
-    });
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await signup(email, password);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    }
   };
 
+  const signupWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  const signupWithGitHub = async () => {
+    const provider = new GithubAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -37,34 +66,55 @@ export default function Signup() {
         className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg shadow-lg border"
       >
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">Welcome </h1>
+          <h1 className="text-3xl font-bold">Welcome</h1>
           <p className="text-muted-foreground">
-            Enter your credentials to access your account
+            Enter your credentials to create an account
           </p>
         </div>
 
-        <form className="space-y-4">
+        {error && (
+          <div className="text-red-500 text-center">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSignup} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="text">Username</Label>
-            <Input id="username" type="text" placeholder="Enter Username" />
+            <Label htmlFor="username">Username</Label>
+            <Input 
+              id="username" 
+              type="text" 
+              placeholder="Enter Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="john@example.com" onChange={(e) => setemail(e.target.value)}/>
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="john@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" onChange={(e) => setpass(e.target.value)}/>
+            <Input 
+              id="password" 
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
 
-          {/* <div className="space-y-2">
-            <Label htmlFor="password">Confirm Password</Label>
-            <Input id="password" type="password" />
-          </div> */}
-
-          <Button className="w-full" size="lg">
+          <Button type="submit" className="w-full" size="lg">
             Sign Up
           </Button>
         </form>
@@ -90,8 +140,20 @@ export default function Signup() {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" onClick={signupWithGoogle}>Google</Button>
-          <Button variant="outline">GitHub</Button>
+          <Button 
+            type="button"
+            variant="outline" 
+            onClick={signupWithGoogle}
+          >
+            Google
+          </Button>
+          <Button 
+            type="button"
+            variant="outline"
+            onClick={signupWithGitHub}
+          >
+            GitHub
+          </Button>
         </div>
 
         <p className="text-center text-sm">
