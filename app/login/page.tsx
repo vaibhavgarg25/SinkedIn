@@ -6,29 +6,35 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { 
   GoogleAuthProvider, 
   GithubAuthProvider, 
-  signInWithPopup 
+  signInWithPopup, 
+  signInWithEmailAndPassword 
 } from "firebase/auth";
-import { getAuth } from "firebase/auth";
-import { firebaseApp } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAuth();
   const router = useRouter();
-  const auth = getAuth(firebaseApp);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
-      await login(email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      const user = result.user;
+
+      // Save user data to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        username: user.displayName || "Anonymous",
+      }, { merge: true });
+
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
@@ -38,8 +44,16 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Save user data to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        username: user.displayName || "Anonymous",
+      });
+
+      router.push("/profile");
     } catch (err: any) {
       setError(err.message);
     }
@@ -48,8 +62,16 @@ export default function Login() {
   const handleGitHubSignIn = async () => {
     const provider = new GithubAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Save user data to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        username: user.displayName || "Anonymous",
+      });
+
+      router.push("/profile");
     } catch (err: any) {
       setError(err.message);
     }

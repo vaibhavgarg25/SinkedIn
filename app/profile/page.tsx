@@ -1,17 +1,61 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, MapPin, Building2, GraduationCap, ThumbsDown } from "lucide-react";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // Import Firebase Auth
+import { firebaseApp, db } from "@/lib/firebase"; // Correctly import firebaseApp and db
+
+// Define the type for the user data
+interface UserData {
+  username: string;
+  email: string;
+}
 
 export default function Profile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [loading, setLoading] = useState(true); // To handle loading state
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const auth = getAuth(firebaseApp); // Get the authentication instance
+        const user = auth.currentUser; // Get the currently authenticated user
+
+        if (user) {
+          const userDoc = doc(db, "users", user.uid); // Use user's UID from Firebase Auth
+          const docSnap = await getDoc(userDoc);
+
+          if (docSnap.exists()) {
+            const data = docSnap.data() as UserData;
+            console.log("Fetched data:", data);
+            setUserData(data);
+          } else {
+            console.log("No such document!");
+          }
+        } else {
+          console.log("No user is logged in.");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false); // Stop loading after fetching data
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>; // Show a loading message while data is being fetched
+  }
 
   return (
     <div className="container mx-auto my-16 px-4 py-8">
@@ -28,8 +72,12 @@ export default function Profile() {
               <div className="mt-16">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h1 className="text-2xl font-bold">John Doe</h1>
-                    <p className="text-muted-foreground">Professional Dream Chaser | Serial Job Rejectee</p>
+                    <h1 className="text-2xl font-bold">
+                      {userData?.username || "Loading..."}
+                    </h1>
+                    <p className="text-muted-foreground">
+                      {userData?.email || "Loading..."}
+                    </p>
                     <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4" />
                       <span>Parents' Basement, Somewhere</span>
