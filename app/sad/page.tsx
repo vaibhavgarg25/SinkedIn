@@ -1,42 +1,28 @@
-"use client";
+"use client"
 import { useState } from 'react';
-
 const SadnessChecker = () => {
   const [post, setPost] = useState('');
   const [isSad, setIsSad] = useState<null | number>(null);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
 
   const analyzePost = async () => {
-    if (post.length > 1000) {
-      alert("Post is too long. Please shorten it.");
-      return;
-    }
-
     setLoading(true);
-    setIsSad(null);
-    setErrorMessage('');
-
+    setIsSad(null); // Reset the result
     try {
-      const response = await fetch('http://localhost:8000/routes/validate', {
+      const response = await fetch('/api/sentiment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: post }),
       });
-      console.log(response)
+
       if (!response.ok) {
         throw new Error('Failed to analyze sentiment');
       }
 
       const data = await response.json();
-      if (!data || typeof data.sad !== "boolean") {
-        throw new Error("Unexpected API response format");
-      }
-
       setIsSad(data.sad ? 1 : 0);
     } catch (error) {
       console.error('Error analyzing sentiment:', error);
-      setErrorMessage("Could not analyze sentiment. Please try again.");
       setIsSad(null);
     } finally {
       setLoading(false);
@@ -73,7 +59,6 @@ const SadnessChecker = () => {
       >
         {loading ? 'Analyzing...' : 'Check Sadness'}
       </button>
-      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
       {isSad !== null && (
         <p style={{ marginTop: '20px', fontSize: '18px' }}>
           {isSad === 1 ? 'The post is Sad 😔' : 'The post is Not Sad 😊'}
