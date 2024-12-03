@@ -9,7 +9,7 @@ import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth"; // Import Firebase Auth and signOut
 import { useRouter } from "next/navigation"; // For redirection (use next/navigation for app directory)
 import { firebaseApp, db } from "@/lib/firebase"; // Correctly import firebaseApp and db
-
+import { AnimatePresence } from "framer-motion";
 // Define the type for the user data
 interface UserData {
   username: string;
