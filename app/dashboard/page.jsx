@@ -1,8 +1,9 @@
 import React from "react";
 // import { Header } from "../../components/layout/header"; // Ensure correct path
+import { Header } from "../../components/layout/header"; 
 import { LeftSidebar } from "../../components/sidebar/leftsidebar";
 import { RightSidebar } from "../../components/sidebar/rightsidebar";
-// import {Feed} from "../../components/feed/feed"
+import { CreatePost } from "@/components/post/create-post";
 
 
 function App() {
@@ -15,11 +16,14 @@ function App() {
           <LeftSidebar />
         </div>
         
-        {/* Main Content (Feed) */}
+        {/* Main Content (Feed)
         <main className="lg:col-span-1 p-6 bg-white dark:bg-gray-800 dark:text-gray-100 shadow rounded-lg">
-          {/* <Feed /> */}
+         <CreatePost />
+          {samplePosts.map((post) => (
+            <PostCard key={post.id} {...post} />
+          ))}
         </main>
-        
+         */}
         {/* Right Sidebar */}
         <div className="lg:block">
           <RightSidebar />

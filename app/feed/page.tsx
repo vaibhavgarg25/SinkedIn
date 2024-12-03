@@ -2,6 +2,8 @@
 
 import { CreatePost } from "@/components/post/create-post";
 import { PostCard } from "@/components/post/post-card";
+import { LeftSidebar } from "@/components/sidebar/leftsidebar";
+import { RightSidebar } from "@/components/sidebar/rightsidebar";
 
 export default function Feed() {
   const samplePosts = [
@@ -29,13 +31,21 @@ export default function Feed() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="container max-h-screen mx-auto px-4 py-8">
+      <div className="lg:block">
+          <LeftSidebar />
+        </div>
+        
+        <main className="h-screen overflow-y-auto max-w-2xl mx-auto space-y-6 no-scrollbar">
         <CreatePost />
         {samplePosts.map((post) => (
           <PostCard key={post.id} {...post} />
         ))}
-      </div>
+        </main>
+        
+        <div className="lg:block">
+          <RightSidebar />
+        </div>
     </div>
   );
 }

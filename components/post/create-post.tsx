@@ -24,7 +24,7 @@ export function CreatePost() {
                 Rejection Letter
               </Button>
             </div>
-            <Button>Confess</Button>
+            <Button size="sm">Confess</Button>
           </div>
         </div>
       </div>
