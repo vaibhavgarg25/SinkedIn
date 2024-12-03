@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col items-center justify-center">
       <main className="container mx-auto px-6 py-16">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
