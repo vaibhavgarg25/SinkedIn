@@ -12,7 +12,7 @@ const corsOption={
   }
 app.use(cors(corsOption));
 app.use(express.json())
-app.use('/routes',routes)
+app.use('/',routes)
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)
   })
