@@ -34,17 +34,17 @@ export function Navbar() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="flex items-center space-x-4">
-            <Link href="/feed">
+            <Link href={loggedin?"/feed":"/"}>
               <Button variant="ghost" size="icon" title="Feed">
                 <Home className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href="/messages">
+            <Link href={loggedin?"/messages":"/"}>
               <Button variant="ghost" size="icon" title="Messages">
                 <MessageSquare className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href="/notifications">
+            <Link href={loggedin?"/notifications":"/"}>
               <Button variant="ghost" size="icon" title="Notifications">
                 <Bell className="h-[1.2rem] w-[1.2rem]" />
               </Button>
