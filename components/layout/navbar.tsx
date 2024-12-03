@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Home, MessageSquare, Bell, User, BriefcaseX } from "lucide-react";
+import { Home, MessageSquare, Bell, User, Briefcase } from "lucide-react";
 
 export function Navbar() {
   return (
@@ -11,7 +11,7 @@ export function Navbar() {
       <div className="container flex h-14 items-center">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <BriefcaseX className="h-6 w-6" />
+            <Briefcase className="h-6 w-6" />
             <span className="font-bold">SinkedIn</span>
           </Link>
         </div>
