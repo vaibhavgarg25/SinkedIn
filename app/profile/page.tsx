@@ -4,9 +4,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { Pencil, MapPin, Building2, GraduationCap, ThumbsDown } from "lucide-react";
+import { Pencil, MapPin, Building2, GraduationCap, ThumbsDown, LogOut } from "lucide-react";
 import { getFirestore, doc, getDoc } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // Import Firebase Auth
+import { getAuth, signOut } from "firebase/auth"; // Import Firebase Auth and signOut
+import { useRouter } from "next/navigation"; // For redirection (use next/navigation for app directory)
 import { firebaseApp, db } from "@/lib/firebase"; // Correctly import firebaseApp and db
 
 // Define the type for the user data
@@ -18,26 +19,38 @@ interface UserData {
 export default function Profile() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true); // To handle loading state
+  const [isClient, setIsClient] = useState(false); // To check if it’s client-side rendering
+
+  const router = useRouter(); // For redirection
 
   useEffect(() => {
+    setIsClient(true); // Set the client-side flag to true once the component has mounted
+  }, []);
+
+  // Check if the user is authenticated
+  useEffect(() => {
+    if (!isClient) return; // Don't run this code until the component is mounted on the client
+
     const fetchUserData = async () => {
+      const auth = getAuth(firebaseApp); // Get the authentication instance
+      const user = auth.currentUser; // Get the currently authenticated user
+
+      if (!user) {
+        // Redirect to the login page if no user is logged in
+        router.push("/login");
+        return;
+      }
+
       try {
-        const auth = getAuth(firebaseApp); // Get the authentication instance
-        const user = auth.currentUser; // Get the currently authenticated user
+        const userDoc = doc(db, "users", user.uid); // Use user's UID from Firebase Auth
+        const docSnap = await getDoc(userDoc);
 
-        if (user) {
-          const userDoc = doc(db, "users", user.uid); // Use user's UID from Firebase Auth
-          const docSnap = await getDoc(userDoc);
-
-          if (docSnap.exists()) {
-            const data = docSnap.data() as UserData;
-            console.log("Fetched data:", data);
-            setUserData(data);
-          } else {
-            console.log("No such document!");
-          }
+        if (docSnap.exists()) {
+          const data = docSnap.data() as UserData;
+          console.log("Fetched data:", data);
+          setUserData(data);
         } else {
-          console.log("No user is logged in.");
+          console.log("No such document!");
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -47,7 +60,17 @@ export default function Profile() {
     };
 
     fetchUserData();
-  }, []);
+  }, [router, isClient]); // Add `isClient` as dependency to ensure it’s client-side
+
+  const handleLogout = async () => {
+    try {
+      const auth = getAuth(firebaseApp);
+      await signOut(auth); // Sign the user out from Firebase
+      router.push("/login"); // Redirect to login page after sign-out
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   if (loading) {
     return <div>Loading...</div>; // Show a loading message while data is being fetched
@@ -139,6 +162,13 @@ export default function Profile() {
                         </span>
                     ))}
                   </div>
+                </div>
+
+                <div className="mt-6">
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Log Out
+                  </Button>
                 </div>
               </div>
             </div>
