@@ -2,9 +2,10 @@
 import { useState } from 'react';
 const SadnessChecker = () => {
   const [post, setPost] = useState('');
-  const [isSad, setIsSad] = useState<null | number>(null);
+  const [isSad, setIsSad] = useState<null | string>(null);
   const [loading, setLoading] = useState(false);
-
+  const [errorMessage, setErrorMessage] = useState('');
+    const [val, setVal] = useState<string>("")
   const analyzePost = async () => {
     setLoading(true);
     setIsSad(null); // Reset the result
@@ -12,15 +13,26 @@ const SadnessChecker = () => {
       const response = await fetch('/api/sentiment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: post }),
+        body: JSON.stringify({post}),
       });
 
       if (!response.ok) {
         throw new Error('Failed to analyze sentiment');
       }
 
-      const data = await response.json();
-      setIsSad(data.sad ? 1 : 0);
+      let data = await response.json();
+    //   if (!data || typeof data.sad !== "boolean") {
+    //     throw new Error("Unexpected API response format");
+    //   }
+    console.log(typeof(data))
+    console.log(data.length)
+    if (data.trim()=== '0')
+        setVal("happy")
+    else if (data.trim()==='1'){
+        setVal("sad")
+    }
+    else setVal("no if")
+      setIsSad(data);
     } catch (error) {
       console.error('Error analyzing sentiment:', error);
       setIsSad(null);
@@ -61,7 +73,8 @@ const SadnessChecker = () => {
       </button>
       {isSad !== null && (
         <p style={{ marginTop: '20px', fontSize: '18px' }}>
-          {isSad === 1 ? 'The post is Sad 😔' : 'The post is Not Sad 😊'}
+          {/* {isSad === 1 ? 'The post is Sad 😔' : 'The post is Not Sad 😊'} */}
+          {val}
         </p>
       )}
     </div>
