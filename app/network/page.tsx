@@ -52,7 +52,7 @@ export default function NetworkPage() {
                 <Avatar className="w-24 h-24 mb-4">
                 <img
   src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-  alt={`${user?.name || "User"}'s avatar`}
+  alt={`${user?.username || "User"}'s avatar`}
   className="rounded-full"
 />
 
