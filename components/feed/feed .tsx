@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { CreatePost } from './createpost';
-import { FailurePost } from '../posts/Failurepost';
+// import { FailurePost } from '../posts/Failurepost';
 
 const SAMPLE_POSTS = [
   {
@@ -35,9 +35,9 @@ export function Feed() {
   return (
     <div className="max-w-2xl mx-auto pt-4">
       <CreatePost />
-      {SAMPLE_POSTS.map((post) => (
-        <FailurePost key={post.id} {...post} />
-      ))}
+      {/* {SAMPLE_POSTS.map((post) => (
+        // <FailurePost key={post.id} {...post} />
+      ))} */}
     </div>
   );
 }
