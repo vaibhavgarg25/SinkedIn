@@ -15,7 +15,7 @@ const FAILURE_CATEGORIES = [
 
 export function RightSidebar() {
   return (
-    <div className="w-80 fixed right-0 top-16 h-full bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-4 overflow-y-auto transition-colors">
+    <div className="w-80 absolute right-0 top-16 h-full bg-background dark:bg-background border-l border-border dark:border-border p-4 overflow-y-auto transition-colors">
       <div className="mb-6">
         <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Trending Failures</h3>
         <div className="space-y-3">
@@ -23,7 +23,7 @@ export function RightSidebar() {
             <Link 
               href={`/topic/${topic.id}`} 
               key={topic.id} 
-              className="block p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              className="block p-3 bg-background dark:bg-background rounded-lg hover:bg-background dark:hover:bg-background transition-colors"
             >
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{topic.title}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{topic.count} people sharing</p>
@@ -39,9 +39,9 @@ export function RightSidebar() {
             <Link
               href={`/category/${category.id}`}
               key={category.id}
-              className="flex items-center p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="flex items-center p-2 hover:bg-background dark:hover:background rounded-lg transition-colors"
             >
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+              <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
               <span className="text-sm text-gray-700 dark:text-gray-300">{category.title}</span>
             </Link>
           ))}

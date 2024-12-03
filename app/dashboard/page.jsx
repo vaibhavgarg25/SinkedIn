@@ -1,8 +1,7 @@
 import React from "react";
-import { Header } from "../../components/layout/header"; // Ensure correct path
+import { Header } from "../../components/layout/header"; 
 import { LeftSidebar } from "../../components/sidebar/leftsidebar";
 import { RightSidebar } from "../../components/sidebar/rightsidebar";
-import { Feed } from 
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
         
         {/* Main Content (Feed) */}
         <main className="lg:col-span-1 p-6 bg-white dark:bg-gray-800 dark:text-gray-100 shadow rounded-lg">
-          <Feed />
         </main>
         
         {/* Right Sidebar */}
