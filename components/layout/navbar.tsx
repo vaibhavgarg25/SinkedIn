@@ -8,7 +8,7 @@ import { Home, MessageSquare, Bell, User, Briefcase } from "lucide-react";
 export function Navbar() {
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+      <div className="container flex h-14 justify-between mx-auto items-center">
         <div className="mr-4 flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Briefcase className="h-6 w-6" />
