@@ -5,22 +5,20 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Home, MessageSquare, Bell, User, Briefcase } from "lucide-react";
 import { useState, useEffect } from "react";
-import { getAuth } from "firebase/auth";
-import { firebaseApp } from "@/lib/firebase"; // Ensure this is correctly set up
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebase";
 
 export function Navbar() {
-  const [loggedin, setIsLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
-    const auth = getAuth(firebaseApp); // Get the Firebase Auth instance
-    const user = auth.currentUser; // Check if there's a logged-in user
+    const auth = getAuth(firebaseApp); // Initialize Firebase Auth
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setLoggedIn(!!user); // Set state to true if a user is logged in, false otherwise
+    });
 
-    if (user) {
-      setIsLoggedIn(true); // Set the state to true if the user is logged in
-    } else {
-      setIsLoggedIn(false); // Set the state to false if no user is logged in
-    }
-  }, []); // Empty dependency array so this runs only once when the component mounts
+    return () => unsubscribe(); // Clean up the listener on component unmount
+  }, []);
 
   return (
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -34,31 +32,35 @@ export function Navbar() {
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
           <div className="flex items-center space-x-4">
-            <Link href={loggedin?"/feed":"/"}>
+            <Link href="/feed">
               <Button variant="ghost" size="icon" title="Feed">
                 <Home className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href={loggedin?"/messages":"/"}>
+            <Link href="/messages">
               <Button variant="ghost" size="icon" title="Messages">
                 <MessageSquare className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href={loggedin?"/notifications":"/"}>
+            <Link href="/notifications">
               <Button variant="ghost" size="icon" title="Notifications">
                 <Bell className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
             <ThemeToggle />
-            <Link href={loggedin ? "/profile" : "/login"}>
-              {loggedin ? (
+            {loggedIn ? (
+              <Link href="/profile">
                 <Button variant="ghost" size="icon" title="Profile">
                   <User className="h-[1.2rem] w-[1.2rem]" />
                 </Button>
-              ) : (
-                <Button size="sm">Login</Button>
-              )}
-            </Link>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button size="sm" title="Login">
+                  Login
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
