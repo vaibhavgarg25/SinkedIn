@@ -23,7 +23,7 @@ export function RightSidebar() {
             <Link 
               href={`/topic/${topic.id}`} 
               key={topic.id} 
-              className="block p-3 bg-background dark:bg-background rounded-lg hover:bg-background dark:hover:bg-background transition-colors"
+              className="block p-3 border border-border bg-background dark:bg-background rounded-lg hover:bg-background dark:hover:bg-background transition-colors"
             >
               <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{topic.title}</p>
               <p className="text-xs text-gray-500 dark:text-gray-400">{topic.count} people sharing</p>
@@ -33,7 +33,7 @@ export function RightSidebar() {
       </div>
 
       <div>
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-4">People Also Failed At</h3>
+        <h3 className="font-semibold text-primary dark:text-primary mb-4">People Also Failed At</h3>
         <div className="space-y-3">
           {FAILURE_CATEGORIES.map((category) => (
             <Link
@@ -42,7 +42,7 @@ export function RightSidebar() {
               className="flex items-center p-2 hover:bg-background dark:hover:background rounded-lg transition-colors"
             >
               <div className="w-2 h-2 bg-primary rounded-full mr-3"></div>
-              <span className="text-sm text-gray-700 dark:text-gray-300">{category.title}</span>
+              <span className="text-sm text-primary dark:text-primary">{category.title}</span>
             </Link>
           ))}
         </div>
