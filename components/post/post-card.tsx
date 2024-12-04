@@ -47,7 +47,13 @@ export function PostCard({
     >
       <Card className="p-4 shadow-md hover:shadow-lg transition-shadow">
         <div className="flex items-center gap-3 mb-4">
-          <Avatar className="w-10 h-10" />
+          <Avatar className="w-10 h-10">
+          <img
+            src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+            alt={"User's avatar"}
+            className="rounded-full"
+          />
+          </Avatar>
           <div>
             <p className="font-semibold">{author}</p>
             <p className="text-sm text-muted-foreground">{role}</p>
