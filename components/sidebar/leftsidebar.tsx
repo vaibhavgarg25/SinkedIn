@@ -43,14 +43,6 @@ export function LeftSidebar() {
             <BookOpen className="h-5 w-5 mr-3" />
             <span>Learning</span>
           </Link>
-          <Link
-            href="/growth"
-            className={buttonVariants({
-              variant: 'ghost',
-              className: 'flex items-center w-full p-3',
-            })}
-          >
-            </Link>
         </nav>
       </div>
     </div>
