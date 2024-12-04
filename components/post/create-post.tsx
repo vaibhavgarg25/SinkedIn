@@ -4,41 +4,46 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Image, Link2 } from "lucide-react";
+import { Image, Link2, ThumbsDown, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase"; // Import Firestore and Auth instances
-import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore"; // Firestore functions
+
+import { db, auth } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
+import { HashLoader } from "react-spinners";
+import { toast } from "react-toastify";
+
 
 export function CreatePost() {
   const [flag, setFlag] = useState(false);
-  const [postContent, setPostContent] = useState(""); // State for post content
+  const [postContent, setPostContent] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [posts, setPosts] = useState<any[]>([]); // State to store posts from the database
+  const [errorMessage, setErrorMessage] = useState("");
+  const [posts, setPosts] = useState<any[]>([]);
 
-  // Fetch posts from Firestore when the component mounts
+
+  const fetchPosts = async () => {
+    try {
+      const postsRef = collection(db, "posts");
+      const postsQuery = query(postsRef, orderBy("timestamp", "desc")); // Fetch latest posts first
+      const postsSnapshot = await getDocs(postsQuery);
+      const postsList = postsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPosts(postsList);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setErrorMessage("An error occurred while fetching posts.");
+    }
+  };
+
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const postsRef = collection(db, "posts"); // Reference to the posts collection
-        const postsSnapshot = await getDocs(postsRef);
-        const postsList = postsSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPosts(postsList); // Update state with the fetched posts
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-        setErrorMessage("An error occurred while fetching posts.");
-      }
-    };
-
-    fetchPosts(); // Call the function to fetch posts
+    fetchPosts();
   }, []);
 
   const handlePostSubmit = async () => {
     setLoading(true);
-    setFlag(false); // Reset flag before submission
+    setFlag(false);
 
     if (postContent.trim()) {
       try {
@@ -50,21 +55,20 @@ export function CreatePost() {
           return;
         }
 
-        // Make the sentiment analysis request to the backend
-        const response = await fetch('http://localhost:8000/feed', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("http://localhost:8000/feed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ post: postContent }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to analyze sentiment');
+          throw new Error("Failed to analyze sentiment");
         }
 
         const data = await response.json();
         console.log(data);
 
-        if (data.trim() === '1') {
+        if (data.trim() === "1") {
           setFlag(true);
         } else {
           setFlag(false);
@@ -72,17 +76,21 @@ export function CreatePost() {
 
         if (flag) {
           const currentUserId = currentUser.uid;
-          const postsRef = collection(db, "posts"); // General posts collection reference
+          const postsRef = collection(db, "posts");
 
-          // Add the post to the general posts collection
           await addDoc(postsRef, {
             content: postContent,
             timestamp: serverTimestamp(),
             userName: currentUser.displayName || "Anonymous",
-            userId: currentUserId, // Store the userId for general reference
+            userId: currentUserId,
           });
 
+          await fetchPosts(); // Refresh feed immediately
+          toast.success("ur voice shall be heard")
           setPostContent(""); // Clear input field
+        }
+        else {
+          toast.error("ooo nice...how informative")
         }
       } catch (error) {
         console.error("Error processing post:", error);
@@ -96,8 +104,26 @@ export function CreatePost() {
     }
   };
 
+  // Placeholder functions for dislike and comment
+  const handleDislike = (postId: string) => {
+    console.log(`Disliked post with ID: ${postId}`);
+    // Add your dislike logic here
+  };
+
+  const handleComment = (postId: string) => {
+    console.log(`Commented on post with ID: ${postId}`);
+    // Add your comment logic here
+  };
+
   return (
-    <div>
+    <div className="relative">
+      {/* Spinner Overlay */}
+      {loading && (
+        <div className="absolute inset-0 top-0 h-[20%] flex items-center justify-center z-50">
+          <HashLoader size={50} color="#ffffff" />
+        </div>
+      )}
+
       <Card className="p-4">
         <div className="flex gap-4">
           <Avatar className="w-10 h-10" />
@@ -106,7 +132,7 @@ export function CreatePost() {
               placeholder="Share your latest failure..."
               className="min-h-[100px]"
               value={postContent}
-              onChange={(e) => setPostContent(e.target.value)} // Update post content
+              onChange={(e) => setPostContent(e.target.value)}
             />
             <div className="flex justify-between items-center mt-4">
               <div className="flex gap-2">
@@ -137,9 +163,31 @@ export function CreatePost() {
                 <Avatar className="w-10 h-10" />
                 <div className="flex-1">
                   <p className="font-bold">{post.userName}</p>
-                  <p className="text-sm text-gray-600">{new Date(post.timestamp?.seconds * 1000).toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">
+                    {new Date(post.timestamp?.seconds * 1000).toLocaleString()}
+                  </p>
                   <p className="mt-2">{post.content}</p>
                 </div>
+              </div>
+
+              {/* Buttons for dislike and comment */}
+              <div className="flex justify-start gap-4 mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDislike(post.id)}
+                >
+                  <ThumbsDown className="h-4 w-4 mr-2" />
+                  Dislike
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleComment(post.id)}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Comment
+                </Button>
               </div>
             </Card>
           ))
