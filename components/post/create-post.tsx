@@ -6,9 +6,12 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Image, Link2, ThumbsDown, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
+
 import { db, auth } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { HashLoader } from "react-spinners";
+import { toast } from "react-toastify";
+
 
 export function CreatePost() {
   const [flag, setFlag] = useState(false);
@@ -17,7 +20,7 @@ export function CreatePost() {
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
 
-  // Fetch posts from Firestore
+
   const fetchPosts = async () => {
     try {
       const postsRef = collection(db, "posts");
@@ -82,8 +85,12 @@ export function CreatePost() {
             userId: currentUserId,
           });
 
-          setPostContent(""); // Clear input
           await fetchPosts(); // Refresh feed immediately
+          toast.success("ur voice shall be heard")
+          setPostContent(""); // Clear input field
+        }
+        else {
+          toast.error("ooo nice...how informative")
         }
       } catch (error) {
         console.error("Error processing post:", error);
