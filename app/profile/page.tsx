@@ -10,7 +10,7 @@ import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "fi
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
-import Loadingbar from "@/components/ui/loadingbar";
+import { HashLoader } from "react-spinners";
 
 // Define the type for user data and posts
 interface UserData {
@@ -85,7 +85,11 @@ export default function Profile() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  if (loading) return "loading";
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center">
+      <HashLoader color="white"/>
+    </div>
+  );
 
   return (
     <div className="container mx-auto mt-0 px-4 py-8">
@@ -98,7 +102,13 @@ export default function Profile() {
           <Card className="relative">
             <div className="h-32 bg-gradient-to-r from-red-400 to-red-600 rounded-t-lg"></div>
             <div className="p-6">
-              <Avatar className="w-32 h-32 border-4 border-background absolute -top-16 left-6" />
+              <Avatar className="w-32 h-32 mt-[10%] border-4 border-background absolute -top-16 left-6">
+              <img
+                src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                alt={"User's avatar"}
+                className="rounded-full"
+              />
+              </Avatar>
               <div className="mt-16">
                 <div className="flex justify-between items-start">
                   <div>

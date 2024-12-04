@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Image, Link2, ThumbsDown, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
-
 import { db, auth } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { HashLoader } from "react-spinners";
@@ -127,7 +126,13 @@ export function CreatePost() {
 
       <Card className="p-4">
         <div className="flex gap-4">
-          <Avatar className="w-10 h-10" />
+          <Avatar className="w-10 h-10">
+          <img
+            src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+            alt={"User's avatar"}
+            className="rounded-full"
+          />
+          </Avatar>
           <div className="flex-1">
             <Textarea
               placeholder="Share your latest failure..."
@@ -193,7 +198,11 @@ export function CreatePost() {
             </Card>
           ))
         ) : (
-          <p>No posts yet.</p>
+          <div className="flex h-screen justify-center items-center">
+            <HashLoader
+            color="white"
+            />
+          </div>
         )}
       </div>
     </div>
