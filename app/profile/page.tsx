@@ -10,8 +10,8 @@ import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
+import Loadingbar from "@/components/ui/loadingbar";
 
-// Define the type for user data
 interface UserData {
   username: string;
   email: string;
@@ -25,7 +25,6 @@ export default function Profile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
-  // Fetch user data and handle authentication
   useEffect(() => {
     const fetchUserData = async () => {
       const auth = getAuth(firebaseApp);
@@ -68,7 +67,7 @@ export default function Profile() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return "loading";
 
   return (
     <div className="container mx-auto mt-20 px-4 py-8">
