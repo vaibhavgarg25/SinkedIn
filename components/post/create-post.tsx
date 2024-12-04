@@ -21,12 +21,13 @@ export function CreatePost() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const postsRef = collection(db, "posts"); // Reference to the posts collection
-        const postsSnapshot = await getDocs(postsRef);
-        const postsList = postsSnapshot.docs.map(doc => ({
+        const postsRef = collection(db, "posts"); // Reference to the 'posts' collection
+        const postsSnapshot = await getDocs(postsRef); // Fetch the documents
+        const postsList = postsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        console.log(postsList);
         setPosts(postsList); // Update state with the fetched posts
       } catch (error) {
         console.error("Error fetching posts:", error);
@@ -34,7 +35,7 @@ export function CreatePost() {
       }
     };
 
-    fetchPosts(); // Call the function to fetch posts
+    fetchPosts();
   }, []);
 
   const handlePostSubmit = async () => {
