@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { MessageCircle, X } from "lucide-react";
-
+interface ChatMessage {
+  sender: "user" | "bot";
+  text: string;
+}
 const Chatbot = () => {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [message, setMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState([]);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [message, setMessage] = useState<string>("");
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
@@ -15,9 +18,9 @@ const Chatbot = () => {
   const sendMessage = async () => {
     if (!message.trim()) return; // Prevent sending empty messages
     
-    const newMessage = { sender: "user", text: message };
+     const newMessage: ChatMessage = { sender: "user", text: message };
     setChatHistory((prev) => [...prev, newMessage]);
-    console.log(newMessage)
+    console.log(newMessage);
     try {
       const response = await fetch("http://localhost:8000/bot", {
         method: "POST",
