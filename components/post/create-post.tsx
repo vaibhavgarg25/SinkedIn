@@ -8,8 +8,6 @@ import { Image, Link2 } from "lucide-react";
 import { useState } from "react";
 import { db, auth } from "@/lib/firebase"; // Import Firestore and Auth instances
 import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore"; // Firestore functions
-
-
 export function CreatePost() {
   const [flag, setFlag] = useState(false)
   const [post, setPost] = useState('');
@@ -70,6 +68,9 @@ export function CreatePost() {
           });
           setFlag(!flag)
           setPostContent(""); // Clear input field
+        }
+        else{
+          alert("Happy post not Allowed")
         }
         
         console.log("Current User:", currentUser);
