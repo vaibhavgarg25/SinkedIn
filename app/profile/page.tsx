@@ -6,12 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, MapPin, Building2, GraduationCap, ThumbsDown, LogOut } from "lucide-react";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
 
-// Define the type for user data
+// Define the type for user data and posts
 interface UserData {
   username: string;
   email: string;
@@ -19,10 +19,17 @@ interface UserData {
   bio?: string;
 }
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+}
+
 export default function Profile() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [posts, setPosts] = useState<Post[]>([]);
   const router = useRouter();
 
   // Fetch user data and handle authentication
@@ -45,6 +52,16 @@ export default function Profile() {
         } else {
           console.error("No user document found!");
         }
+
+        // Fetch posts created by the user
+        const postsQuery = query(collection(doc(db, "users", user.uid), "posts"));
+
+        const querySnapshot = await getDocs(postsQuery);
+        const fetchedPosts: Post[] = [];
+        querySnapshot.forEach((doc) => {
+          fetchedPosts.push({ id: doc.id, ...doc.data() } as Post);
+        });
+        setPosts(fetchedPosts);
       } catch (error) {
         console.error("Error fetching user data:", error);
       } finally {
@@ -145,6 +162,23 @@ export default function Profile() {
                     ))}
                   </div>
                 </div>
+
+                {/* User Posts Section */}
+                <div className="mt-8">
+                  <h3 className="font-semibold mb-3">Your Posts</h3>
+                  <div className="space-y-4">
+                    {posts.length === 0 ? (
+                      <p>No posts yet</p>
+                    ) : (
+                      posts.map((post) => (
+                        <Card key={post.id} className="p-4">
+                          <h4 className="font-semibold text-lg">{post.title}</h4>
+                          <p className="text-sm text-muted-foreground">{post.content}</p>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
@@ -181,42 +215,21 @@ export default function Profile() {
                     />
                   </div>
                   <div className="mb-4">
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                      Location
-                    </label>
-                    <input
-                      id="location"
-                      className="mt-1 block w-full p-2 border border-border rounded"
-                      defaultValue={userData?.location}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Recently Resigned From
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      className="mt-1 block w-full p-2 border border-border rounded-lg"
-                    />
-                  </div>
-                  <div className="mb-4">
                     <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
                       Bio
                     </label>
                     <textarea
                       id="bio"
-                      className="mt-1 block w-full p-2 border border-border rounded no-scrollbar"
+                      rows={4}
+                      className="mt-1 block w-full p-2 border border-border rounded-lg"
                       defaultValue={userData?.bio}
                     />
                   </div>
-                  <div className="flex justify-end">
-                    <Button variant="outline" size="sm" onClick={handleCloseModal}>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={handleCloseModal}>
                       Cancel
                     </Button>
-                    <Button variant="ghost" size="sm" className="ml-2">
-                      Save Changes
-                    </Button>
+                    <Button>Save</Button>
                   </div>
                 </form>
               </motion.div>
