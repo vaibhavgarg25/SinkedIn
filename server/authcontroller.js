@@ -1,8 +1,9 @@
 // const GEMINI_API_URL =
 //   "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent";
-const API_KEY = "AIzaSyB4PM84wBW1ZQaRD2Zxl2AtAnEJCSbRni0";
-
-
+require("dotenv").config();
+// const API_KEY = "AIzaSyB4PM84wBW1ZQaRD2Zxl2AtAnEJCSbRni0";
+const API_KEY = process.env.API_KEY; 
+console.log(API_KEY)
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { type } = require("os");
 const genAI = new GoogleGenerativeAI(API_KEY);
