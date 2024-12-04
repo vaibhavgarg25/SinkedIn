@@ -8,6 +8,7 @@ import { Image, Link2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase"; // Import Firestore and Auth instances
 import { collection, addDoc, serverTimestamp, getDocs } from "firebase/firestore"; // Firestore functions
+import { toast } from "react-toastify";
 
 export function CreatePost() {
   const [flag, setFlag] = useState(false);
@@ -81,8 +82,11 @@ export function CreatePost() {
             userName: currentUser.displayName || "Anonymous",
             userId: currentUserId, // Store the userId for general reference
           });
-
+          toast.success("ur voice shall be heard")
           setPostContent(""); // Clear input field
+        }
+        else {
+          toast.error("ooo nice...how informative")
         }
       } catch (error) {
         console.error("Error processing post:", error);
