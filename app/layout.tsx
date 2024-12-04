@@ -14,6 +14,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <title>SinkedIn</title>
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <meta name="description" content="SinkedIn - Share and engage with posts!" />
+      </head>
+
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
