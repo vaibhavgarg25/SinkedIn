@@ -2,7 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/layout/navbar";
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from "@/contexts/AuthContext";
 import Chatbot from "@/components/chatbot";
 const inter = Inter({ subsets: ["latin"] });
 import { ToastContainer } from "react-toastify";
@@ -36,7 +36,7 @@ export default function RootLayout({
           </main>
           </AuthProvider>
         </ThemeProvider>
-        <Chatbot/>
+        <Chatbot />
       </body>
     </html>
   );
