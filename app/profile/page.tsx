@@ -88,7 +88,7 @@ export default function Profile() {
   if (loading) return "loading";
 
   return (
-    <div className="container mx-auto mt-20 px-4 py-8">
+    <div className="container mx-auto mt-0 px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { MessageCircle, X } from "lucide-react";
+
 interface ChatMessage {
   sender: "user" | "bot";
   text: string;
 }
+
 const Chatbot = () => {
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
@@ -17,8 +19,8 @@ const Chatbot = () => {
 
   const sendMessage = async () => {
     if (!message.trim()) return; // Prevent sending empty messages
-    
-     const newMessage: ChatMessage = { sender: "user", text: message };
+
+    const newMessage: ChatMessage = { sender: "user", text: message };
     setChatHistory((prev) => [...prev, newMessage]);
     console.log(newMessage);
     try {
@@ -54,18 +56,20 @@ const Chatbot = () => {
 
   return (
     <div>
-      {/* Button to open/close the chat */}
-      <button
-        onClick={toggleChat}
-        className="fixed bottom-5 right-5 p-3 bg-blue-500 text-white rounded-full shadow-lg z-50"
-      >
-        <MessageCircle className="h-6 w-6" />
-      </button>
+      {/* Button to open/close the chat (only visible when chat is closed) */}
+      {!isChatOpen && (
+        <button
+          onClick={toggleChat}
+          className="fixed bottom-5 right-5 p-3 bg-black text-white rounded-full shadow-lg z-50"
+        >
+          <MessageCircle className="h-6 w-6" />
+        </button>
+      )}
 
       {/* Chatbox */}
       {isChatOpen && (
-        <div className="fixed bottom-0 right-0 w-80 h-96 bg-gray-800 text-white shadow-lg rounded-tl-lg z-40">
-          <div className="flex justify-between items-center bg-gray-900 text-white p-3 rounded-tl-lg rounded-tr-lg">
+        <div className="fixed bottom-0 right-0 w-80 h-96 bg-black text-white shadow-lg rounded-tl-lg z-40">
+          <div className="flex justify-between items-center bg-black text-white p-3 rounded-tl-lg rounded-tr-lg">
             <span>Chatbot</span>
             <button
               onClick={toggleChat}
@@ -86,8 +90,8 @@ const Chatbot = () => {
                   <div
                     className={`p-2 rounded-lg max-w-xs ${
                       msg.sender === "user"
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-700"
+                        ? "bg-white text-black"
+                        : "bg-gray-600 text-white"
                     }`}
                   >
                     {msg.text}
@@ -100,12 +104,12 @@ const Chatbot = () => {
             <input
               type="text"
               placeholder="Type your message..."
-              className="w-full p-2 rounded-md bg-gray-600 text-white border border-gray-500"
+              className="w-full p-2 rounded-md bg-gray-800 text-white border border-gray-500"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
             <button
-              className="ml-2 p-2 bg-blue-500 text-white rounded-full"
+              className="ml-2 p-2 bg-black text-white rounded-full"
               onClick={sendMessage}
             >
               Send
