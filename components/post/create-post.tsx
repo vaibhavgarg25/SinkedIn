@@ -159,7 +159,13 @@ export function CreatePost() {
           posts.map((post) => (
             <Card key={post.id} className="p-4 mb-4">
               <div className="flex gap-4">
-                <Avatar className="w-10 h-10" />
+              <Avatar className="w-10 h-10">
+                <img
+                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                  alt={"User's avatar"}
+                  className="rounded-full"
+                />
+              </Avatar>
                 <div className="flex-1">
                   <p className="font-bold">{post.userName}</p>
                   <p className="text-sm text-gray-600">
