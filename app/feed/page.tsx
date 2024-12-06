@@ -17,7 +17,7 @@ export default function Feed() {
           <LeftSidebar />
         </div>
         
-        <main className="flex-1 mx-[28%] h-screen overflow-y-auto max-h-[calc(100vh-120px)] scrollbar-hide max-w-2xl no-scrollbar">
+        <main className="flex-1 h-screen overflow-y-auto max-h-[calc(100vh-120px)] scrollbar-hide max-w-2xl no-scrollbar md:mx-[28%]">
         <CreatePost />
         
         </main>

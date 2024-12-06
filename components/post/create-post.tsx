@@ -10,7 +10,7 @@ import { db, auth } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { HashLoader } from "react-spinners";
 import { toast } from "react-toastify";
-
+import { motion } from "framer-motion"; // Import Framer Motion
 
 export function CreatePost() {
   const [flag, setFlag] = useState(false);
@@ -18,7 +18,7 @@ export function CreatePost() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
-
+  const [dislikedPosts, setDislikedPosts] = useState<string[]>([]); // Track disliked posts
 
   const fetchPosts = async () => {
     try {
@@ -37,7 +37,6 @@ export function CreatePost() {
   };
 
   useEffect(() => {
-
     fetchPosts();
   }, []);
 
@@ -86,11 +85,10 @@ export function CreatePost() {
           });
 
           await fetchPosts(); // Refresh feed immediately
-          toast.success("ur voice shall be heard")
+          toast.success("Your voice shall be heard");
           setPostContent(""); // Clear input field
-        }
-        else {
-          toast.error("ooo nice...how informative")
+        } else {
+          toast.error("ooo nice...how informative");
         }
       } catch (error) {
         console.error("Error processing post:", error);
@@ -104,20 +102,16 @@ export function CreatePost() {
     }
   };
 
-  // Placeholder functions for dislike and comment
   const handleDislike = (postId: string) => {
-    console.log(`Disliked post with ID: ${postId}`);
-    // Add your dislike logic here
-  };
-
-  const handleComment = (postId: string) => {
-    console.log(`Commented on post with ID: ${postId}`);
-    // Add your comment logic here
+    if (dislikedPosts.includes(postId)) {
+      setDislikedPosts(dislikedPosts.filter((id) => id !== postId)); // Remove dislike
+    } else {
+      setDislikedPosts([...dislikedPosts, postId]); // Add dislike
+    }
   };
 
   return (
     <div className="relative">
-      {/* Spinner Overlay */}
       {loading && (
         <div className="absolute inset-0 top-0 h-[20%] flex items-center justify-center z-50">
           <HashLoader size={50} color="#ffffff" />
@@ -127,20 +121,20 @@ export function CreatePost() {
       <Card className="p-4">
         <div className="flex gap-4">
           <Avatar className="w-10 h-10">
-          <img
-            src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-            alt={"User's avatar"}
-            className="rounded-full"
-          />
+            <img
+              src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+              alt={"User's avatar"}
+              className="rounded-full"
+            />
           </Avatar>
-          <div className="flex-1">
+          <div className="flex-1 w-[50%]">
             <Textarea
               placeholder="Share your latest failure..."
               className="min-h-[100px]"
               value={postContent}
               onChange={(e) => setPostContent(e.target.value)}
             />
-            <div className="flex justify-between items-center mt-4">
+            <div className="justify-between items-center mt-4 md:flex">
               <div className="flex gap-2">
                 <Button variant="outline" size="sm">
                   <Image className="h-4 w-4 mr-2" />
@@ -151,7 +145,7 @@ export function CreatePost() {
                   Rejection Letter
                 </Button>
               </div>
-              <Button size="sm" onClick={handlePostSubmit} disabled={loading}>
+              <Button size="sm" onClick={handlePostSubmit} disabled={loading} className="my-2">
                 Confess
               </Button>
             </div>
@@ -160,13 +154,18 @@ export function CreatePost() {
         {errorMessage && <p className="text-red-500 text-sm">{errorMessage}</p>}
       </Card>
 
-      {/* Display the fetched posts */}
       <div className="mt-6">
         {posts.length > 0 ? (
           posts.map((post) => (
             <Card key={post.id} className="p-4 mb-4">
               <div className="flex gap-4">
-                <Avatar className="w-10 h-10" />
+              <Avatar className="w-10 h-10">
+                <img
+                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                  alt={"User's avatar"}
+                  className="rounded-full"
+                />
+              </Avatar>
                 <div className="flex-1">
                   <p className="font-bold">{post.userName}</p>
                   <p className="text-sm text-gray-600">
@@ -176,20 +175,33 @@ export function CreatePost() {
                 </div>
               </div>
 
-              {/* Buttons for dislike and comment */}
               <div className="flex justify-start gap-4 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDislike(post.id)}
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    color: dislikedPosts.includes(post.id) ? "#FF0000" : "#hsl(var(--primary))",
+                  }}
+                  transition={{ duration: 0.2 }}
                 >
-                  <ThumbsDown className="h-4 w-4 mr-2" />
-                  Dislike
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDislike(post.id)}
+                  >
+                    <ThumbsDown
+                      className={`h-4 w-4 mr-2 ${
+                        dislikedPosts.includes(post.id)
+                          ? "text-red-500"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                    Dislike
+                  </Button>
+                </motion.div>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handleComment(post.id)}
+                  onClick={() => console.log(`Commented on post with ID: ${post.id}`)}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Comment
@@ -199,9 +211,7 @@ export function CreatePost() {
           ))
         ) : (
           <div className="flex h-screen justify-center items-center">
-            <HashLoader
-            color="white"
-            />
+            <HashLoader color="white" />
           </div>
         )}
       </div>
