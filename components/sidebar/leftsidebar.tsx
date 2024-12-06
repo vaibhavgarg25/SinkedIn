@@ -5,7 +5,7 @@ import { buttonVariants } from '../ui/button';
 
 export function LeftSidebar() {
   return (
-    <div className="hidden w-64 absolute left-0 top-16 h-screen bg-background dark:background border-r border-border dark:border-border p-4 transition-colors md:absolute">
+    <div className="hidden w-64 absolute left-0 top-16 h-screen bg-background dark:background border-r border-border dark:border-border p-4 transition-colors md:block">
       <div className="space-y-4">
         <div className="p-3 rounded-lg border border-border bg-background dark:bg-background">
           <h3 className="font-semibold text-primary dark:text-primary mb-2">Your Profile</h3>
