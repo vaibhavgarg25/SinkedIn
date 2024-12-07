@@ -11,7 +11,7 @@ import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
 import { HashLoader } from "react-spinners";
-
+import {toast} from "react-toastify"
 interface UserData {
   username: string;
   email: string;
@@ -24,6 +24,7 @@ interface Post {
   id: string;
   title: string;
   content: string;
+  userId:string;
 }
 
 export default function Profile() {
@@ -33,49 +34,50 @@ export default function Profile() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const router = useRouter();
+  const fetchUserData = async () => {
+    const auth = getAuth(firebaseApp);
+    const user = auth.currentUser;
+    if (!user) {
+      router.push("/login");
+      return;
+    }
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const auth = getAuth(firebaseApp);
-      const user = auth.currentUser;
-      if (!user) {
-        router.push("/login");
+    try {
+      const userDoc = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userDoc);
+    
+      if (docSnap.exists()) {
+        setUserData(docSnap.data() as UserData);
+      } else {
+        console.error("No user document found!");
         return;
       }
-
-      try {
-        const userDoc = doc(db, "users", user.uid);
-        const docSnap = await getDoc(userDoc);
-      
-        if (docSnap.exists()) {
-          setUserData(docSnap.data() as UserData);
-        } else {
-          console.error("No user document found!");
-          return;
-        }
-      
-        const postsCollection = collection(db, "posts"); 
-        const postsQuery = query(postsCollection); 
-      
-        const querySnapshot = await getDocs(postsQuery); 
-        const fetchedPosts: Post[] = querySnapshot.docs.map((doc) => ({
-          id: doc.id, 
-          ...doc.data(), 
-        })) as Post[]; 
-      
-        if (fetchedPosts.length === 0) {
-          console.log("No posts found for this user.");
-        }
-      
-        setPosts(fetchedPosts); 
-      } catch (error) {
-        console.error("Error fetching user data or posts:", error);
-      } finally {
-        setLoading(false);
+    
+      const postsCollection = collection(db, "posts"); 
+      const postsQuery = query(postsCollection); 
+    
+      const querySnapshot = await getDocs(postsQuery); 
+      const fetchedPosts: Post[] = querySnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Post, "id">), 
+      }))
+      .filter((post) => post.userId === user.uid); 
+    
+    
+      if (fetchedPosts.length === 0) {
+        console.log("No posts found for this user.");
       }
+    
+      setPosts(fetchedPosts); 
+    } catch (error) {
+      console.error("Error fetching user data or posts:", error);
+    } finally {
+      setLoading(false);
     }
-      
-
+  }
+    
+  useEffect(() => {
     fetchUserData();
   }, [router]);
 
@@ -130,12 +132,13 @@ export default function Profile() {
       }
       if (Object.keys(updates).length > 0) {
         await updateDoc(userDoc, updates);
-        console.log("Profile successfully updated!");
+        toast.info("Profile successfully updated!");
+        setLoading(true)
+        setIsModalOpen(false); 
+        await fetchUserData()
       } else {
-        console.log("No changes detected, nothing to update.");
+        toast.info("No changes detected, nothing to update.");
       }
-  
-      setIsModalOpen(false); 
     } catch (error) {
       console.error("Error updating profile:", error);
     }
@@ -249,7 +252,7 @@ export default function Profile() {
                 </div>
               </div>
             </div>
-          </Card>
+          </Card> 
         </motion.div>
 
         <AnimatePresence>
