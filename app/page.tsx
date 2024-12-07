@@ -25,7 +25,7 @@ export default function Home() {
           </p>
           
           <div className="flex gap-4 justify-center mt-8">
-            <Link href="/login">
+            <Link href="/feed">
               <Button size="lg">
                 Join the Struggle <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
