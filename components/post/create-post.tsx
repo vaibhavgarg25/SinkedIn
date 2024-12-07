@@ -43,50 +43,45 @@ export function CreatePost() {
   const handlePostSubmit = async () => {
     setLoading(true);
     setFlag(false);
-
     if (postContent.trim()) {
       try {
         const currentUser = auth.currentUser;
-
+  
         if (!currentUser) {
           console.error("No user is logged in.");
           setLoading(false);
           return;
         }
-
-        const response = await fetch("http://localhost:8000/feed", {
+  
+        const response = await fetch("/api/validate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ post: postContent }),
+          body: JSON.stringify({ text: postContent }),
         });
-
+  
         if (!response.ok) {
           throw new Error("Failed to analyze sentiment");
         }
-
+        console.log(response)
         const data = await response.json();
-        console.log(data);
-
-        if (data.trim() === "1") {
+        console.log("API Response:", data);
+  
+        if (data.result === "1") {
           setFlag(true);
-        } else {
-          setFlag(false);
-        }
 
-        if (flag) {
           const currentUserId = currentUser.uid;
           const postsRef = collection(db, "posts");
-
+  
           await addDoc(postsRef, {
             content: postContent,
             timestamp: serverTimestamp(),
             userName: currentUser.displayName || "Anonymous",
             userId: currentUserId,
           });
-
-          await fetchPosts(); // Refresh feed immediately
+  
+          await fetchPosts(); 
           toast.success("Your voice shall be heard");
-          setPostContent(""); // Clear input field
+          setPostContent(""); 
         } else {
           toast.error("ooo nice...how informative");
         }
@@ -101,6 +96,7 @@ export function CreatePost() {
       setLoading(false);
     }
   };
+  
 
   const handleDislike = (postId: string) => {
     if (dislikedPosts.includes(postId)) {

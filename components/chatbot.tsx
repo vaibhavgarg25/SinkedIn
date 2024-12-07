@@ -19,25 +19,36 @@ const Chatbot = () => {
 
   const sendMessage = async () => {
     if (!message.trim()) return; // Prevent sending empty messages
-
+  
     const newMessage: ChatMessage = { sender: "user", text: message };
     setChatHistory((prev) => [...prev, newMessage]);
-    console.log(newMessage);
+  
     try {
-      const response = await fetch("http://localhost:8000/bot", {
+      console.log("Sending message:", message);
+      const response = await fetch("/api/chatbot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message }), // Wrap in an object
+        body: JSON.stringify({ text: message }), 
       });
-
+  
+      console.log("Response status:", response.status);
+  
       if (response.ok) {
         const data = await response.json();
-        setChatHistory((prev) => [
-          ...prev,
-          { sender: "bot", text: data || "I didn't get that." },
-        ]);
+  
+        if (data?.response) {
+          setChatHistory((prev) => [
+            ...prev,
+            { sender: "bot", text: data.response },
+          ]);
+        } else {
+          setChatHistory((prev) => [
+            ...prev,
+            { sender: "bot", text: "I didn't get that. Please try again." },
+          ]);
+        }
       } else {
         setChatHistory((prev) => [
           ...prev,
@@ -45,15 +56,16 @@ const Chatbot = () => {
         ]);
       }
     } catch (error) {
+      console.error("Error in sendMessage:", error);
       setChatHistory((prev) => [
         ...prev,
         { sender: "bot", text: "Network error. Please try again later." },
       ]);
     } finally {
-      setMessage(""); // Clear input field
+      setMessage(""); 
     }
   };
-
+  
   return (
     <div>
       {/* Button to open/close the chat (only visible when chat is closed) */}
