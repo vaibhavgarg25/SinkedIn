@@ -1,11 +1,38 @@
 "use client";
-
+import { useEffect,useState } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { ThumbsDown, MessageCircle, UserPlus } from "lucide-react";
-
+import { useRouter } from "next/navigation";
+import { firebaseApp } from "@/lib/firebase";
+import { getAuth } from "firebase/auth";
+import { HashLoader } from "react-spinners";
+import { toast } from "react-toastify";
 export default function Notifications() {
+  const router =useRouter()
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    try {
+    const auth = getAuth(firebaseApp)
+    const user = auth.currentUser
+    if(!user){
+      router.push("/login");
+      return
+    } 
+    else{
+      setLoading(false)
+    }
+    } catch (error:any) {
+      toast.error("Error fetching user data:", error);
+    }
+   
+  }, [router])
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center">
+      <HashLoader color="white"/>
+    </div>
+  );
   const notifications = [
     {
       id: 1,

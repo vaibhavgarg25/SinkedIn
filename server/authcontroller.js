@@ -1,22 +1,12 @@
-// const GEMINI_API_URL =
-//   "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent";
-require("dotenv").config();
-// const API_KEY = "AIzaSyB4PM84wBW1ZQaRD2Zxl2AtAnEJCSbRni0";
-const API_KEY = process.env.API_KEY; 
-console.log(API_KEY)
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const { type } = require("os");
+const API_KEY=process.env.NEXT_PUBLIC_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 const validate = async (req, res) => {
   let text = req.body;
   console.log(text) 
   console.log(typeof(JSON.stringify(text)))
-  
-  //   if (!text || typeof text !== "string") {
-    //     return res.status(400).json({ message: "Invalid input" });
-    //   }
-    
+
     text=JSON.stringify(text)
     try {
     console.log("Sending request to Gemini API:", { text });
@@ -26,22 +16,11 @@ const validate = async (req, res) => {
 
 
     console.log(result.response.text())
-    // if (!result.ok) {
-    //   console.error(
-    //     "Error from Gemini API:",
-    //     result.status,
-    //     result.statusText
-    //   );
-    //   throw new Error(`Gemini API error: ${response.statusText}`);
-    // }
   
     const response = result.response.text()
     console.log(response)
     console.log("Gemini API Response:", response);
-  
-    // Adjust based on actual API response format
-    // const isSad = response?.sentiment === "negative";
-    // res.status(200).json({ sad: 'isSad' });
+
   return res.status(200).json(response)
   } catch (error) {
     console.error("Error while calling Gemini API:", error);

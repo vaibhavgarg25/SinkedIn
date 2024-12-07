@@ -1,4 +1,5 @@
 "use client";
+import { Avatar } from "@radix-ui/react-avatar";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
