@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, MapPin, Building2, GraduationCap, ThumbsDown, LogOut } from "lucide-react";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs ,updateDoc} from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
@@ -17,6 +17,7 @@ interface UserData {
   email: string;
   location?: string;
   bio?: string;
+  profilepic?:string;
 }
 
 interface Post {
@@ -28,6 +29,7 @@ interface Post {
 export default function Profile() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+ const [edit,setedit]=useState({bio:"",name:"",location:"",profilepic:""})
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const router = useRouter();
@@ -36,7 +38,6 @@ export default function Profile() {
     const fetchUserData = async () => {
       const auth = getAuth(firebaseApp);
       const user = auth.currentUser;
-
       if (!user) {
         router.push("/login");
         return;
@@ -45,28 +46,35 @@ export default function Profile() {
       try {
         const userDoc = doc(db, "users", user.uid);
         const docSnap = await getDoc(userDoc);
-
+      
         if (docSnap.exists()) {
           setUserData(docSnap.data() as UserData);
         } else {
           console.error("No user document found!");
+          return;
         }
-
-        // Fetch posts created by the user
-        const postsQuery = query(collection(doc(db, "users", user.uid), "posts"));
-
-        const querySnapshot = await getDocs(postsQuery);
-        const fetchedPosts: Post[] = [];
-        querySnapshot.forEach((doc) => {
-          fetchedPosts.push({ id: doc.id, ...doc.data() } as Post);
-        });
-        setPosts(fetchedPosts);
+      
+        const postsCollection = collection(db, "posts"); 
+        const postsQuery = query(postsCollection); 
+      
+        const querySnapshot = await getDocs(postsQuery); 
+        const fetchedPosts: Post[] = querySnapshot.docs.map((doc) => ({
+          id: doc.id, 
+          ...doc.data(), 
+        })) as Post[]; 
+      
+        if (fetchedPosts.length === 0) {
+          console.log("No posts found for this user.");
+        }
+      
+        setPosts(fetchedPosts); 
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("Error fetching user data or posts:", error);
       } finally {
         setLoading(false);
       }
-    };
+    }
+      
 
     fetchUserData();
   }, [router]);
@@ -83,6 +91,57 @@ export default function Profile() {
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
+
+  const handleedit=(e)=>{
+    e.preventDefault();
+    let name = e.target.id;
+    console.log(name)
+    let value = e.target.value;
+    setedit({
+      ...edit,
+      [name]: value,
+    });
+  }
+
+  const handlechange = async (e) => {
+    e.preventDefault();
+    const auth = getAuth(firebaseApp);
+    const user = auth.currentUser;
+  
+    if (!user) {
+      console.error("No authenticated user found.");
+      return;
+    }
+  
+    try {
+      const userDoc = doc(db, "users", user.uid);
+      const updates = {};
+      if (edit.name && edit.name !== userData?.username) {
+        updates.username = edit.name;
+      }
+      if (edit.bio && edit.bio !== userData?.bio) {
+        updates.bio = edit.bio;
+      }
+      if (edit.location && edit.location !== userData?.location) {
+        updates.location = edit.location;
+      }
+      if (edit.profilepic && edit.profilepic !== userData?.profilepic) {
+        updates.profilepic = edit.profilepic;
+      }
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(userDoc, updates);
+        console.log("Profile successfully updated!");
+      } else {
+        console.log("No changes detected, nothing to update.");
+      }
+  
+      setIsModalOpen(false); 
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
+  };
+  
+
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center">
@@ -221,6 +280,19 @@ export default function Profile() {
                       id="name"
                       className="mt-1 block w-full p-2 border border-border rounded-lg"
                       defaultValue={userData?.username}
+                      onChange={handleedit}
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+                      Location
+                    </label>
+                    <input
+                      id="location"
+                      type="text"
+                      className="mt-1 block w-full p-2 border border-border rounded-lg"
+                      defaultValue={userData?.location}
+                      onChange={handleedit}
                     />
                   </div>
                   <div className="mb-4">
@@ -232,13 +304,26 @@ export default function Profile() {
                       rows={4}
                       className="mt-1 block w-full p-2 border border-border rounded-lg"
                       defaultValue={userData?.bio}
+                      onChange={handleedit}
                     />
+                    <div className="mb-4">
+                    <label htmlFor="profilepic" className="block text-sm font-medium text-gray-700">
+                      Profile Pic
+                    </label>
+                    <input
+                      id="profilepic"
+                      type="document"
+                      className="mt-1 block w-full p-2 border border-border rounded-lg"
+                      defaultValue={userData?.profilepic}
+                      onChange={handleedit}
+                    />
+                  </div>
                   </div>
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={handleCloseModal}>
                       Cancel
                     </Button>
-                    <Button>Save</Button>
+                    <Button onClick={handlechange}>Save</Button>
                   </div>
                 </form>
               </motion.div>
