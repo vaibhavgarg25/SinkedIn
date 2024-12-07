@@ -1,5 +1,3 @@
-"use client";
-
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -10,7 +8,7 @@ import { db, auth } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { HashLoader } from "react-spinners";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion"; // Import Framer Motion
+import { motion } from "framer-motion";
 
 export function CreatePost() {
   const [flag, setFlag] = useState(false);
@@ -18,12 +16,12 @@ export function CreatePost() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
-  const [dislikedPosts, setDislikedPosts] = useState<string[]>([]); // Track disliked posts
+  const [dislikedPosts, setDislikedPosts] = useState<string[]>([]);
 
   const fetchPosts = async () => {
     try {
       const postsRef = collection(db, "posts");
-      const postsQuery = query(postsRef, orderBy("timestamp", "desc")); // Fetch latest posts first
+      const postsQuery = query(postsRef, orderBy("timestamp", "desc"));
       const postsSnapshot = await getDocs(postsQuery);
       const postsList = postsSnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -46,42 +44,41 @@ export function CreatePost() {
     if (postContent.trim()) {
       try {
         const currentUser = auth.currentUser;
-  
+
         if (!currentUser) {
           console.error("No user is logged in.");
           setLoading(false);
           return;
         }
-  
+
         const response = await fetch("/api/validate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: postContent }),
         });
-  
+
         if (!response.ok) {
           throw new Error("Failed to analyze sentiment");
         }
-        console.log(response)
+
         const data = await response.json();
-        console.log("API Response:", data);
-  
+
         if (data.result === "1") {
           setFlag(true);
 
           const currentUserId = currentUser.uid;
           const postsRef = collection(db, "posts");
-  
+
           await addDoc(postsRef, {
             content: postContent,
             timestamp: serverTimestamp(),
             userName: currentUser.displayName || "Anonymous",
             userId: currentUserId,
           });
-  
-          await fetchPosts(); 
+
+          await fetchPosts();
           toast.success("Your voice shall be heard");
-          setPostContent(""); 
+          setPostContent("");
         } else {
           toast.error("ooo nice...how informative");
         }
@@ -96,13 +93,12 @@ export function CreatePost() {
       setLoading(false);
     }
   };
-  
 
   const handleDislike = (postId: string) => {
     if (dislikedPosts.includes(postId)) {
-      setDislikedPosts(dislikedPosts.filter((id) => id !== postId)); // Remove dislike
+      setDislikedPosts(dislikedPosts.filter((id) => id !== postId));
     } else {
-      setDislikedPosts([...dislikedPosts, postId]); // Add dislike
+      setDislikedPosts([...dislikedPosts, postId]);
     }
   };
 
@@ -155,13 +151,13 @@ export function CreatePost() {
           posts.map((post) => (
             <Card key={post.id} className="p-4 mb-4">
               <div className="flex gap-4">
-              <Avatar className="w-10 h-10">
-                <img
-                  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                  alt={"User's avatar"}
-                  className="rounded-full"
-                />
-              </Avatar>
+                <Avatar className="w-10 h-10">
+                  <img
+                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                    alt={"User's avatar"}
+                    className="rounded-full"
+                  />
+                </Avatar>
                 <div className="flex-1">
                   <p className="font-bold">{post.userName}</p>
                   <p className="text-sm text-gray-600">
@@ -171,21 +167,18 @@ export function CreatePost() {
                 </div>
               </div>
 
-              <div className="flex justify-start gap-4 mt-4">
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  animate={{
-                    color: dislikedPosts.includes(post.id) ? "#FF0000" : "#hsl(var(--primary))",
-                  }}
-                  transition={{ duration: 0.2 }}
-                >
+              <hr className="my-4 border-secondary" /> {/* Divider line */}
+
+              <div className="flex justify-around text-sm text-gray-500">
+                <motion.div whileTap={{ scale: 0.9 }}>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleDislike(post.id)}
+                    className="flex items-center gap-2"
                   >
                     <ThumbsDown
-                      className={`h-4 w-4 mr-2 ${
+                      className={`h-4 w-4 ${
                         dislikedPosts.includes(post.id)
                           ? "text-red-500"
                           : "text-muted-foreground"
@@ -195,14 +188,38 @@ export function CreatePost() {
                   </Button>
                 </motion.div>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => console.log(`Commented on post with ID: ${post.id}`)}
+                  className="flex items-center gap-2"
                 >
-                  <MessageCircle className="h-4 w-4 mr-2" />
+                  <MessageCircle className="h-4 w-4" />
                   Comment
                 </Button>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Image className="h-4 w-4" />
+                  Share
+                </Button>
               </div>
+              <div className="mt-4">
+              <div className="flex items-center gap-2">
+                <Avatar className="w-8 h-8">
+                  <img
+                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                    alt="User Avatar"
+                    className="rounded-full"
+                  />
+                </Avatar>
+                <Textarea
+                  placeholder="Write a comment..."
+                  className="flex-1 min-h-[40px] resize-none text-sm"
+                />
+                <Button size="sm" className="ml-2">
+                  Post
+                </Button>
+              </div>
+            </div>
+
             </Card>
           ))
         ) : (
