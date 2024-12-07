@@ -92,7 +92,7 @@ export default function Profile() {
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleedit=(e)=>{
+  const handleedit=(e:any)=>{
     e.preventDefault();
     let name = e.target.id;
     console.log(name)
@@ -103,7 +103,7 @@ export default function Profile() {
     });
   }
 
-  const handlechange = async (e) => {
+  const handlechange = async (e: any) => {
     e.preventDefault();
     const auth = getAuth(firebaseApp);
     const user = auth.currentUser;
@@ -115,7 +115,7 @@ export default function Profile() {
   
     try {
       const userDoc = doc(db, "users", user.uid);
-      const updates = {};
+      const updates: Partial<UserData> = {};
       if (edit.name && edit.name !== userData?.username) {
         updates.username = edit.name;
       }
