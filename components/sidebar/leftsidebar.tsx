@@ -71,6 +71,10 @@ export function LeftSidebar() {
 
   const displayData = userData || dummyUserData;
 
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
+
+  const toggleBio = () => setIsBioExpanded(!isBioExpanded);
+
   return (
     <div className="hidden w-80 absolute left-0 top-16 h-screen bg-background border-r border-border p-4 transition-colors md:block">
       <div className="space-y-6">
@@ -85,9 +89,19 @@ export function LeftSidebar() {
         <h3 className="font-semibold text-lg text-primary">
           {displayData.username}
         </h3>
-        <p className="text-sm text-muted-foreground">
-          {displayData.bio || "No bio available"}
-        </p>
+        <p className={`${isBioExpanded? "" : "inline"} text-sm text-muted-foreground`}>
+            {isBioExpanded
+              ? displayData.bio || "No bio available"
+              : (displayData.bio || "No bio available").slice(0, 80) + "..."}
+          </p>
+          {displayData.bio && displayData.bio.length > 50 && (
+            <button
+              className="ml-1 text-primary text-sm mt-2 focus:outline-none"
+              onClick={toggleBio}
+            >
+              {isBioExpanded ? "See Less" : "See More"}
+            </button>
+          )}
         <Link
             href="/profile"
             className={buttonVariants({
