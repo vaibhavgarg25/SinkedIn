@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,8 +47,10 @@ export default function Profile() {
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const router = useRouter();
-
   const fetchUserData = useCallback(async () => {
     const auth = getAuth(firebaseApp);
     const user = auth.currentUser;
@@ -104,6 +107,7 @@ export default function Profile() {
     fetchUserData();
   }, [fetchUserData]);
 
+
   const handleLogout = async () => {
     try {
       const auth = getAuth(firebaseApp);
@@ -116,7 +120,6 @@ export default function Profile() {
   };
 
   const handleOpenModal = () => {
-    // Reset edit state to current userData when opening modal
     setEdit({
       username: userData?.username || "",
       email: userData?.email || "",
@@ -178,6 +181,56 @@ export default function Profile() {
     });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFile = e.target.files?.[0] || null;
+    setFile(uploadedFile);
+
+    if (uploadedFile) {
+      setPreview(URL.createObjectURL(uploadedFile));
+    }
+  };
+  const uploadFile = async () => {
+    if (!file) {
+      toast.error("Please select a file first.");
+      return;
+    }
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        
+        const auth = getAuth(firebaseApp);
+        const user = auth.currentUser;
+
+        if (!user) {
+          toast.error("No authenticated user found");
+          return;
+        }
+
+        setEdit(prev => ({ ...prev, profilepic: data.url }));
+        setPreview(null);
+        setFile(null);
+        toast.success("Profile picture uploaded successfully!");
+      } else {
+        throw new Error("Failed to upload file");
+      }
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     const auth = getAuth(firebaseApp);
@@ -189,25 +242,33 @@ export default function Profile() {
     }
   
     try {
+      // if(preview!==null)
+      //   await uploadFile()
+
       const userDoc = doc(db, "users", user.uid);
       await updateDoc(userDoc, {
         username: edit.username,
         bio: edit.bio,
         location: edit.location,
-        profilepic: edit.profilepic,
+        profilepic: edit.profilepic || userData?.profilepic,
         failedExperience: edit.failedExperience,
         misEducation: edit.misEducation,
         failureHighlights: edit.failureHighlights
       });
   
-      // Update local state
       setUserData(prev => ({
-        ...prev,
-        ...edit
+        ...prev!,
+        username: edit.username,
+        bio: edit.bio,
+        location: edit.location,
+        profilepic: edit.profilepic || prev?.profilepic,
+        failedExperience: edit.failedExperience,
+        misEducation: edit.misEducation,
+        failureHighlights: edit.failureHighlights
       }));
   
       toast.success("Profile successfully updated!");
-      setIsModalOpen(false);
+      setIsModalOpen(false)
     } catch (error) {
       console.error("Error updating profile:", error);
       toast.error("Failed to update profile");
@@ -338,9 +399,10 @@ export default function Profile() {
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.3 }}
+    style={{ margin: 0, padding: 0 }}
   >
     <motion.div
-      className="bg-background p-6 rounded-lg w-full max-w-2xl shadow-lg max-h-[90vh] overflow-y-auto"
+      className="bg-background p-6 rounded-lg w-full max-w-5xl shadow-lg max-h-[90vh] overflow-y-auto"
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.8, opacity: 0 }}
@@ -383,23 +445,43 @@ export default function Profile() {
           <textarea
             id="bio"
             rows={4}
-            className="block w-full p-2 border border-border rounded-lg"
+            className="block w-full p-2 border border-border rounded-lg no-scrollbar"
             value={edit.bio}
             onChange={handleEditChange}
           />
         </div>
 
         <div className="mb-4">
-          <label htmlFor="profilepic" className="block text-sm font-medium text-gray-700 mb-2">
-            Profile Pic URL
-          </label>
-          <input
-            id="profilepic"
-            type="text"
-            className="block w-full p-2 border border-border rounded-lg"
-            value={edit.profilepic}
-            onChange={handleEditChange}
-          />
+        <label htmlFor="profilepic" className="block text-sm font-medium mb-2">
+                  Profile Picture
+                </label>
+                
+                {preview && (
+                  <Image
+                    src={preview}
+                    alt="Profile Preview"
+                    width={5}
+                    height={5}
+                    className="mt-2 w-32 h-32 object-cover rounded-full"
+                  />
+                )}
+                <input
+                  id="profilepic"
+                  type="file"
+                  onChange={handleFileChange}
+                  className="block w-full p-2 border rounded-lg"
+                />
+                <Button 
+                    variant="outline" 
+                    type="button"
+                    onClick={uploadFile} 
+                    className="mt-2" 
+                    disabled={isUploading}
+                  >
+                    {isUploading ? "Uploading..." : "Upload Profile Picture"}
+                  </Button>
+             
+
         </div>
         </div>
           <div>

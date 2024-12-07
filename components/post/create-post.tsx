@@ -1,22 +1,29 @@
+import { useState, useEffect } from "react";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  orderBy,
+} from "firebase/firestore";
+import { db, auth } from "@/lib/firebase";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Image, Link2, ThumbsDown, MessageCircle } from "lucide-react";
-import { useState, useEffect } from "react";
-import { db, auth } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
 import { HashLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 
 export function CreatePost() {
-  const [flag, setFlag] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
   const [dislikedPosts, setDislikedPosts] = useState<string[]>([]);
+  const [commentBoxStates, setCommentBoxStates] = useState<{ [key: string]: boolean }>({});
 
   const fetchPosts = async () => {
     try {
@@ -40,7 +47,6 @@ export function CreatePost() {
 
   const handlePostSubmit = async () => {
     setLoading(true);
-    setFlag(false);
     if (postContent.trim()) {
       try {
         const currentUser = auth.currentUser;
@@ -64,8 +70,6 @@ export function CreatePost() {
         const data = await response.json();
 
         if (data.result === "1") {
-          setFlag(true);
-
           const currentUserId = currentUser.uid;
           const postsRef = collection(db, "posts");
 
@@ -100,6 +104,13 @@ export function CreatePost() {
     } else {
       setDislikedPosts([...dislikedPosts, postId]);
     }
+  };
+
+  const toggleCommentBox = (postId: string) => {
+    setCommentBoxStates((prev) => ({
+      ...prev,
+      [postId]: !prev[postId],
+    }));
   };
 
   return (
@@ -187,38 +198,44 @@ export function CreatePost() {
                     Dislike
                   </Button>
                 </motion.div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => console.log(`Commented on post with ID: ${post.id}`)}
-                  className="flex items-center gap-2"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Comment
-                </Button>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
-                  <Image className="h-4 w-4" />
-                  Share
-                </Button>
-              </div>
-              <div className="mt-4">
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-8 h-8">
-                    <img
-                      src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                      alt="User Avatar"
-                      className="rounded-full"
-                    />
-                  </Avatar>
-                  <Textarea
-                    placeholder="Write a comment..."
-                    className="flex-1 min-h-[40px] resize-none text-sm"
-                  />
-                  <Button size="sm" className="ml-2">
-                    Post
+
+              
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleCommentBox(post.id)}
+                    className="flex items-center gap-2"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    Comment
                   </Button>
-                </div>
+                  <Button variant="ghost" size="sm" className="items-center gap-2">
+                    <Image className="h-4 w-4" />
+                    Share
+                  </Button>
+                
               </div>
+
+              {commentBoxStates[post.id] && ( // Conditionally render the comment bar
+                <div className="mt-4">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-8 h-8">
+                      <img
+                        src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                        alt="User Avatar"
+                        className="rounded-full"
+                      />
+                    </Avatar>
+                    <Textarea
+                      placeholder="Write a comment..."
+                      className="flex-1 min-h-[40px] resize-none text-sm"
+                    />
+                    <Button size="sm" className="ml-2">
+                      Post
+                    </Button>
+                  </div>
+                </div>
+              )}
             </Card>
           ))
         ) : (
