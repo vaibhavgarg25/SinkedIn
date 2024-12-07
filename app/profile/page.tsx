@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
 import { HashLoader } from "react-spinners";
 
-// Define the type for user data and posts
 interface UserData {
   username: string;
   email: string;
