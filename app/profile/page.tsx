@@ -399,9 +399,10 @@ export default function Profile() {
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     transition={{ duration: 0.3 }}
+    style={{ margin: 0, padding: 0 }}
   >
     <motion.div
-      className="bg-background p-6 rounded-lg w-full max-w-2xl shadow-lg max-h-[90vh] overflow-y-auto"
+      className="bg-background p-6 rounded-lg w-full max-w-5xl shadow-lg max-h-[90vh] overflow-y-auto"
       initial={{ scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       exit={{ scale: 0.8, opacity: 0 }}
@@ -444,7 +445,7 @@ export default function Profile() {
           <textarea
             id="bio"
             rows={4}
-            className="block w-full p-2 border border-border rounded-lg"
+            className="block w-full p-2 border border-border rounded-lg no-scrollbar"
             value={edit.bio}
             onChange={handleEditChange}
           />
