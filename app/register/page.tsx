@@ -31,7 +31,7 @@ export default function Signup() {
     setError("");
     try {
       await signup(email, password);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     }
@@ -41,7 +41,7 @@ export default function Signup() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     }
@@ -51,7 +51,7 @@ export default function Signup() {
     const provider = new GithubAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     }

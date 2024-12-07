@@ -7,7 +7,6 @@ import { Home, MessageSquare, Bell, User, Briefcase } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { firebaseApp } from "@/lib/firebase";
-
 export function Navbar() {
   const [loggedIn, setLoggedIn] = useState(false);
 

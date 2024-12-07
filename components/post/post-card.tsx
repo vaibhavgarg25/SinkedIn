@@ -61,14 +61,20 @@ export function PostCard({ author, role, content, time }: PostCardProps) {
       transition={{ duration: 0.3 }}
       className="max-w-lg mx-auto my-6"
     >
-      <Card className="p-6 shadow-xl border border-gray-200 rounded-xl bg-white flex flex-col md:flex-row items-start gap-4">
-        {/* Side Image */}
-        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+      <Card className="p-4 shadow-md hover:shadow-lg transition-shadow">
+        <div className="flex items-center gap-3 mb-4">
+          <Avatar className="w-10 h-10">
           <img
             src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-            alt="Profile Picture"
-            className="object-cover w-full h-full"
+            alt={"User's avatar"}
+            className="rounded-full"
           />
+          </Avatar>
+          <div>
+            <p className="font-semibold">{author}</p>
+            <p className="text-sm text-muted-foreground">{role}</p>
+            <p className="text-xs text-muted-foreground">{time}</p>
+          </div>
         </div>
   
         {/* Content */}
