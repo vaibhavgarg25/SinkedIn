@@ -37,7 +37,7 @@ export function RightSidebar() {
         <div className="space-y-3">
           {FAILURE_CATEGORIES.map((category) => (
             <Link
-              href={`/category/${category.id}`}
+              href={`/technews`}
               key={category.id}
               className="flex items-center p-2 hover:bg-background dark:hover:background rounded-lg transition-colors"
             >

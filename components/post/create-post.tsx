@@ -202,24 +202,23 @@ export function CreatePost() {
                 </Button>
               </div>
               <div className="mt-4">
-              <div className="flex items-center gap-2">
-                <Avatar className="w-8 h-8">
-                  <img
-                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                    alt="User Avatar"
-                    className="rounded-full"
+                <div className="flex items-center gap-2">
+                  <Avatar className="w-8 h-8">
+                    <img
+                      src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                      alt="User Avatar"
+                      className="rounded-full"
+                    />
+                  </Avatar>
+                  <Textarea
+                    placeholder="Write a comment..."
+                    className="flex-1 min-h-[40px] resize-none text-sm"
                   />
-                </Avatar>
-                <Textarea
-                  placeholder="Write a comment..."
-                  className="flex-1 min-h-[40px] resize-none text-sm"
-                />
-                <Button size="sm" className="ml-2">
-                  Post
-                </Button>
+                  <Button size="sm" className="ml-2">
+                    Post
+                  </Button>
+                </div>
               </div>
-            </div>
-
             </Card>
           ))
         ) : (
