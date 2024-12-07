@@ -1,22 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThumbsDown, MessageCircle, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase"; // Use the correct import for your firestore instance
+import { getFirestore, collection, query, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface PostCardProps {
   author: string;
   role: string;
   content: string;
   time: string;
-  likes: number;
-  comments: number;
-  shares: number;
 }
 
 interface Post {
@@ -25,70 +21,83 @@ interface Post {
   role: string;
   content: string;
   time: string;
-  likes: number;
-  comments: number;
-  shares: number;
 }
 
-export function PostCard({
-  author,
-  role,
-  content,
-  time,
-  likes,
-  comments,
-  shares,
-}: PostCardProps) {
+export function PostCard({ author, role, content, time }: PostCardProps) {
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const postsRef = collection(db, "posts");
+        const postsQuery = query(postsRef);
+        const querySnapshot = await getDocs(postsQuery);
+        const fetchedPosts: Post[] = [];
+
+        querySnapshot.forEach((doc) => {
+          const postData = doc.data();
+          fetchedPosts.push({
+            id: doc.id,
+            author: postData.author || "Anonymous",
+            role: postData.role || "User",
+            content: postData.content,
+            time: postData.time || "Unknown",
+          } as Post);
+        });
+
+        setUserPosts(fetchedPosts);
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="max-w-lg mx-auto my-6"
     >
-      <Card className="p-4 shadow-md hover:shadow-lg transition-shadow">
-        <div className="flex items-center gap-3 mb-4">
-          <Avatar className="w-10 h-10" />
-          <div>
-            <p className="font-semibold">{author}</p>
-            <p className="text-sm text-muted-foreground">{role}</p>
-            <p className="text-xs text-muted-foreground">{time}</p>
-          </div>
+      <Card className="p-6 shadow-xl border border-gray-200 rounded-xl bg-white flex flex-col md:flex-row items-start gap-4">
+        {/* Side Image */}
+        <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
+          <img
+            src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+            alt="Profile Picture"
+            className="object-cover w-full h-full"
+          />
         </div>
-
-        <p className="mb-4">{content}</p>
-
-        {/* Post interactions */}
-        <div className="flex gap-4 mt-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <ThumbsDown className="h-4 w-4" />
-            <span>{likes}</span>
+  
+        {/* Content */}
+        <div className="flex-1">
+          <div className="mb-4">
+            <p className="font-bold text-xl text-gray-800">{author}</p>
+            <p className="text-sm text-gray-500">{role}</p>
+            <p className="text-xs text-gray-400">{time}</p>
           </div>
-          <div className="flex items-center gap-1">
-            <MessageCircle className="h-4 w-4" />
-            <span>{comments}</span>
+  
+          <p className="text-gray-700 mb-6 leading-relaxed">{content}</p>
+  
+          {/* Action Buttons */}
+          <div className="flex gap-4">
+            <Button variant="ghost" size="sm" className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+              <ThumbsDown className="h-5 w-5" />
+              <span className="text-sm">Relate</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+              <MessageCircle className="h-5 w-5" />
+              <span className="text-sm">Sympathize</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
+              <Share2 className="h-5 w-5" />
+              <span className="text-sm">Share Pain</span>
+            </Button>
           </div>
-          <div className="flex items-center gap-1">
-            <Share2 className="h-4 w-4" />
-            <span>{shares}</span>
-          </div>
-        </div>
-
-        {/* Interaction buttons */}
-        <div className="flex gap-4 pt-4 border-t">
-          <Button variant="ghost" size="sm">
-            <ThumbsDown className="h-4 w-4 mr-2" />
-            Relate
-          </Button>
-          <Button variant="ghost" size="sm">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Sympathize
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Share2 className="h-4 w-4 mr-2" />
-            Share Pain
-          </Button>
         </div>
       </Card>
     </motion.div>
   );
-}
+  }

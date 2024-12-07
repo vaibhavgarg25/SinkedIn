@@ -85,9 +85,9 @@ export function CreatePost() {
             userId: currentUserId,
           });
 
-          await fetchPosts(); // Refresh feed immediately
+          await fetchPosts(); 
           toast.success("ur voice shall be heard")
-          setPostContent(""); // Clear input field
+          setPostContent(""); 
         }
         else {
           toast.error("ooo nice...how informative")
