@@ -13,8 +13,48 @@ import {
   signInWithPopup, 
   signInWithEmailAndPassword 
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { toast } from "react-toastify";
+
+interface UserData {
+  username: string;
+  email: string;
+  location?: string;
+  bio?: string;
+  profilepic?: string;
+  failedExperience?: string[];
+  misEducation?: string[];
+  failureHighlights?: string[];
+}
+
+const mergeUserData = async (user: any): Promise<UserData> => {
+  const userDocRef = doc(db, "users", user.uid);
+  
+  try {
+    const userDocSnap = await getDoc(userDocRef);
+    const existingData = userDocSnap.exists() ? userDocSnap.data() : {};
+
+    const updatedUserData: UserData = {
+      username: user.displayName || existingData.username || "Anonymous",
+      email: user.email || existingData.email,
+      location: existingData.location || "",
+      bio: existingData.bio || "",
+      profilepic: existingData.profilepic || "",
+      failedExperience: existingData.failedExperience || [],
+      misEducation: existingData.misEducation || [],
+      failureHighlights: existingData.failureHighlights || []
+    };
+
+    await setDoc(userDocRef, updatedUserData, { merge: true });
+
+    return updatedUserData;
+  } catch (error) {
+    console.error("Error merging user data:", error);
+    toast.error("Error processing user data");
+    throw error;
+  }
+};
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -29,14 +69,12 @@ export default function Login() {
       const result = await signInWithEmailAndPassword(auth, email, password);
       const user = result.user;
 
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        username: user.displayName || "Anonymous",
-      }, { merge: true });
+      await mergeUserData(user);
 
-      router.push("/dashboard");
+      router.push("/feed");
     } catch (err: any) {
       setError(err.message);
+      toast.error("Login failed");
     }
   };
 
@@ -46,15 +84,12 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Save user data to Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        username: user.displayName || "Anonymous",
-      });
+      await mergeUserData(user);
 
-      router.push("/profile");
+      router.push("/feed");
     } catch (err: any) {
       setError(err.message);
+      toast.error("Google sign-in failed");
     }
   };
 
@@ -64,15 +99,12 @@ export default function Login() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Save user data to Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        email: user.email,
-        username: user.displayName || "Anonymous",
-      });
+      await mergeUserData(user);
 
-      router.push("/profile");
+      router.push("/feed");
     } catch (err: any) {
       setError(err.message);
+      toast.error("GitHub sign-in failed");
     }
   };
 
@@ -157,7 +189,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-sm">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-primary hover:underline">
             Sign up
           </Link>
