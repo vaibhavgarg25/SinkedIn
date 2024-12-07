@@ -1,15 +1,38 @@
 "use client";
-
+import { useEffect,useState } from "react";
 import { CreatePost } from "@/components/post/create-post";
 import { PostCard } from "@/components/post/post-card";
 import { LeftSidebar } from "@/components/sidebar/leftsidebar";
 import { RightSidebar } from "@/components/sidebar/rightsidebar";
-
+import { useRouter } from "next/navigation";
+import { firebaseApp } from "@/lib/firebase";
+import { getAuth } from "firebase/auth";
+import { HashLoader } from "react-spinners";
+import { toast } from "react-toastify";
 export default function Feed() {
-  const samplePosts = [
-    
-     
-  ];
+  const router =useRouter()
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    try {
+    const auth = getAuth(firebaseApp)
+    const user = auth.currentUser
+    if(!user){
+      router.push("/login");
+      return
+    } 
+    else{
+      setLoading(false)
+    }
+    } catch (error:any) {
+      toast.error("Error fetching user data:", error);
+    }
+   
+  }, [router])
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center">
+      <HashLoader color="white"/>
+    </div>
+  );
 
   return (
     <div className="container max-h-screen mx-auto px-4 py-8">

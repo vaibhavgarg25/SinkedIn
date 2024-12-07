@@ -6,7 +6,11 @@ import { collection, getDocs } from "firebase/firestore";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
-
+import { useRouter } from "next/navigation";
+import { firebaseApp } from "@/lib/firebase";
+import { getAuth } from "firebase/auth";
+import { HashLoader } from "react-spinners";
+import { toast } from "react-toastify";
 type User = {
   id: string;
   username: string;
@@ -16,24 +20,39 @@ type User = {
 
 export default function NetworkPage() {
   const [users, setUsers] = useState<User[]>([]); // Explicitly typing the state
-
+  const router =useRouter()
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
+    
     const fetchUsers = async () => {
+      const auth = getAuth(firebaseApp)
+    const user = auth.currentUser
+    if(!user){
+      router.push("/login");
+      return
+    } 
       try {
         const querySnapshot = await getDocs(collection(db, "users"));
         const userList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
-        })) as User[]; // Type assertion to ensure correct typing
+        })) as User[]; 
         setUsers(userList);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
+      finally{
+        setLoading(false);
+      }
     };
 
     fetchUsers();
-  }, []);
-
+  }, [router]);
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center">
+      <HashLoader color="white"/>
+    </div>
+  );
   const defaultAvatar = "/default-avatar.png"; // Path to your default avatar image
 
   return (
