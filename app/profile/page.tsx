@@ -1,42 +1,57 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Avatar } from "@/components/ui/avatar";
+import { useState, useEffect, useCallback } from "react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pencil, MapPin, Building2, GraduationCap, ThumbsDown, LogOut } from "lucide-react";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs ,updateDoc} from "firebase/firestore";
+import { doc, getDoc, collection, query, getDocs, updateDoc } from "firebase/firestore";
 import { getAuth, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { firebaseApp, db } from "@/lib/firebase";
 import { HashLoader } from "react-spinners";
-import {toast} from "react-toastify"
+import { toast } from "react-toastify";
+
 interface UserData {
   username: string;
   email: string;
   location?: string;
   bio?: string;
-  profilepic?:string;
+  profilepic?: string;
+  failedExperience?: string[];
+  misEducation?: string[];
+  failureHighlights?: string[];
 }
 
 interface Post {
   id: string;
   title: string;
   content: string;
-  userId:string;
+  userId: string;
 }
 
 export default function Profile() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
- const [edit,setedit]=useState({bio:"",name:"",location:"",profilepic:""})
+  const [edit, setEdit] = useState<UserData>({
+    username: "",
+    email: "",
+    location: "",
+    bio: "",
+    profilepic: "",
+    failedExperience: [],
+    misEducation: [],
+    failureHighlights: []
+  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const router = useRouter();
-  const fetchUserData = async () => {
+
+  const fetchUserData = useCallback(async () => {
     const auth = getAuth(firebaseApp);
     const user = auth.currentUser;
+    
     if (!user) {
       router.push("/login");
       return;
@@ -47,10 +62,22 @@ export default function Profile() {
       const docSnap = await getDoc(userDoc);
     
       if (docSnap.exists()) {
-        setUserData(docSnap.data() as UserData);
+        const fetchedUserData = docSnap.data() as UserData;
+        setUserData(fetchedUserData);
+        
+        setEdit({
+          username: fetchedUserData.username || "",
+          email: fetchedUserData.email || "",
+          location: fetchedUserData.location || "",
+          bio: fetchedUserData.bio || "",
+          profilepic: fetchedUserData.profilepic || "",
+          failedExperience: fetchedUserData.failedExperience || [],
+          misEducation: fetchedUserData.misEducation || [],
+          failureHighlights: fetchedUserData.failureHighlights || []
+        });
       } else {
         console.error("No user document found!");
-        return;
+        setUserData(null);
       }
     
       const postsCollection = collection(db, "posts"); 
@@ -58,28 +85,24 @@ export default function Profile() {
     
       const querySnapshot = await getDocs(postsQuery); 
       const fetchedPosts: Post[] = querySnapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Post, "id">), 
-      }))
-      .filter((post) => post.userId === user.uid); 
-    
-    
-      if (fetchedPosts.length === 0) {
-        console.log("No posts found for this user.");
-      }
+        .map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as Omit<Post, "id">), 
+        }))
+        .filter((post) => post.userId === user.uid); 
     
       setPosts(fetchedPosts); 
     } catch (error) {
       console.error("Error fetching user data or posts:", error);
+      toast.error("Failed to fetch user data");
     } finally {
       setLoading(false);
     }
-  }
+}, [router]);
     
   useEffect(() => {
     fetchUserData();
-  }, [router]);
+  }, [fetchUserData]);
 
   const handleLogout = async () => {
     try {
@@ -88,69 +111,118 @@ export default function Profile() {
       router.push("/login");
     } catch (error) {
       console.error("Error during logout:", error);
+      toast.error("Logout failed");
     }
   };
 
-  const handleOpenModal = () => setIsModalOpen(true);
-  const handleCloseModal = () => setIsModalOpen(false);
-
-  const handleedit=(e:any)=>{
-    e.preventDefault();
-    let name = e.target.id;
-    console.log(name)
-    let value = e.target.value;
-    setedit({
-      ...edit,
-      [name]: value,
+  const handleOpenModal = () => {
+    // Reset edit state to current userData when opening modal
+    setEdit({
+      username: userData?.username || "",
+      email: userData?.email || "",
+      location: userData?.location || "",
+      bio: userData?.bio || "",
+      profilepic: userData?.profilepic || "",
+      failedExperience: userData?.failedExperience || [],
+      misEducation: userData?.misEducation || [],
+      failureHighlights: userData?.failureHighlights || []
     });
-  }
+    setIsModalOpen(true);
+  };
 
-  const handlechange = async (e: any) => {
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setEdit(prev => ({
+      ...prev,
+      [id]: value
+    }));
+  };
+
+  const handleArrayEdit = (key: keyof UserData, index: number, value: string) => {
+    setEdit(prev => {
+      const currentArray = prev[key] as string[] | undefined;
+      const updatedArray = currentArray ? [...currentArray] : [];
+      updatedArray[index] = value;
+      return {
+        ...prev,
+        [key]: updatedArray
+      };
+    });
+  };
+  
+  const handleAddArrayItem = (key: keyof UserData) => {
+    setEdit(prev => {
+      const currentArray = prev[key] as string[] | undefined;
+      return {
+        ...prev,
+        [key]: [...(currentArray || []), ""]
+      };
+    });
+  };
+  
+  const handleRemoveArrayItem = (key: keyof UserData, index: number) => {
+    setEdit(prev => {
+      const currentArray = prev[key] as string[] | undefined;
+      if (!currentArray) return prev;
+  
+      const updatedArray = [...currentArray];
+      updatedArray.splice(index, 1);
+      return {
+        ...prev,
+        [key]: updatedArray
+      };
+    });
+  };
+
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     const auth = getAuth(firebaseApp);
     const user = auth.currentUser;
   
     if (!user) {
-      console.error("No authenticated user found.");
+      toast.error("No authenticated user found");
       return;
     }
   
     try {
       const userDoc = doc(db, "users", user.uid);
-      const updates: Partial<UserData> = {};
-      if (edit.name && edit.name !== userData?.username) {
-        updates.username = edit.name;
-      }
-      if (edit.bio && edit.bio !== userData?.bio) {
-        updates.bio = edit.bio;
-      }
-      if (edit.location && edit.location !== userData?.location) {
-        updates.location = edit.location;
-      }
-      if (edit.profilepic && edit.profilepic !== userData?.profilepic) {
-        updates.profilepic = edit.profilepic;
-      }
-      if (Object.keys(updates).length > 0) {
-        await updateDoc(userDoc, updates);
-        toast.info("Profile successfully updated!");
-        setLoading(true)
-        setIsModalOpen(false); 
-        await fetchUserData()
-      } else {
-        toast.info("No changes detected, nothing to update.");
-      }
+      await updateDoc(userDoc, {
+        username: edit.username,
+        bio: edit.bio,
+        location: edit.location,
+        profilepic: edit.profilepic,
+        failedExperience: edit.failedExperience,
+        misEducation: edit.misEducation,
+        failureHighlights: edit.failureHighlights
+      });
+  
+      // Update local state
+      setUserData(prev => ({
+        ...prev,
+        ...edit
+      }));
+  
+      toast.success("Profile successfully updated!");
+      setIsModalOpen(false);
     } catch (error) {
       console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
     }
   };
-  
-
 
   if (loading) return (
     <div className="flex h-screen items-center justify-center">
       <HashLoader color="white"/>
     </div>
   );
+
+  // Default avatar if not provided
+  const avatarSrc = userData?.profilepic || 
+    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
 
   return (
     <div className="container mx-auto mt-0 px-4 py-8">
@@ -164,11 +236,12 @@ export default function Profile() {
             <div className="h-32 bg-gradient-to-r from-red-400 to-red-600 rounded-t-lg"></div>
             <div className="p-6">
               <Avatar className="w-32 h-32 mt-[10%] border-4 border-background absolute -top-16 left-6">
-              <img
-                src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                alt={"User's avatar"}
-                className="rounded-full"
-              />
+                <AvatarImage 
+                  src={avatarSrc} 
+                  alt={`${userData?.username || 'User'}'s avatar`} 
+                  className="rounded-full"
+                />
+                <AvatarFallback>{userData?.username?.[0] || 'U'}</AvatarFallback>
               </Avatar>
               <div className="mt-16">
                 <div className="flex justify-between items-start">
@@ -203,8 +276,9 @@ export default function Profile() {
                       Failed Experience
                     </h3>
                     <ul className="mt-2 space-y-2">
-                      <li className="text-sm text-muted-foreground">• Almost Junior Developer - Tech Corp</li>
-                      <li className="text-sm text-muted-foreground">• Coffee Spiller - Startup Inc</li>
+                      {userData?.failedExperience?.map((experience, index) => (
+                        <li key={index} className="text-sm text-muted-foreground">• {experience}</li>
+                      ))}
                     </ul>
                   </Card>
 
@@ -214,8 +288,9 @@ export default function Profile() {
                       Mis-Education
                     </h3>
                     <ul className="mt-2 space-y-2">
-                      <li className="text-sm text-muted-foreground">• Dropped Out - University of Life</li>
-                      <li className="text-sm text-muted-foreground">• Failed Online Courses - YouTube University</li>
+                      {userData?.misEducation?.map((education, index) => (
+                        <li key={index} className="text-sm text-muted-foreground">• {education}</li>
+                      ))}
                     </ul>
                   </Card>
                 </div>
@@ -226,12 +301,12 @@ export default function Profile() {
                     Failure Highlights
                   </h3>
                   <div className="flex gap-2 flex-wrap">
-                    {["Missed Deadlines", "Bug Creation", "Meeting Mishaps"].map((skill) => (
-                      <span key={skill} className="px-3 py-1 bg-muted rounded-full text-sm">
-                        {skill}
+                    {userData?.failureHighlights?.map((highlight, index) => (
+                      <span key={index} className="px-3 py-1 bg-muted rounded-full text-sm">
+                        {highlight}
                       </span>
                     ))}
-                  </div>
+                  </div> 
                 </div>
 
                 {/* User Posts Section */}
@@ -256,82 +331,186 @@ export default function Profile() {
         </motion.div>
 
         <AnimatePresence>
-          {isModalOpen && (
-            <motion.div
-              className="fixed inset-0 bg-[rgba(0,0,0,0.83)] flex justify-center items-center z-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ margin: 0, padding: 0 }}
+        {isModalOpen && (
+  <motion.div
+    className="fixed inset-0 bg-[rgba(0,0,0,0.83)] flex justify-center items-center z-50 p-4"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    transition={{ duration: 0.3 }}
+  >
+    <motion.div
+      className="bg-background p-6 rounded-lg w-full max-w-2xl shadow-lg max-h-[90vh] overflow-y-auto"
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.8, opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <h2 className="text-2xl font-semibold mb-6">Edit Profile</h2>
+      <form onSubmit={handleProfileUpdate} className="space-y-6">
+        <div className="grid md:grid-cols-3 gap-4">
+          <div>
+          <div className="mb-4">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              Name
+            </label>
+            <input
+              type="text"
+              id="username"
+              className="block w-full p-2 border border-border rounded-lg"
+              value={edit.username}
+              onChange={handleEditChange}
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+              Location
+            </label>
+            <input
+              id="location"
+              type="text"
+              className="block w-full p-2 border border-border rounded-lg"
+              value={edit.location}
+              onChange={handleEditChange}
+            />
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="bio" className="block text-sm font-medium text-gray-700 mb-2">
+            Bio
+          </label>
+          <textarea
+            id="bio"
+            rows={4}
+            className="block w-full p-2 border border-border rounded-lg"
+            value={edit.bio}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label htmlFor="profilepic" className="block text-sm font-medium text-gray-700 mb-2">
+            Profile Pic URL
+          </label>
+          <input
+            id="profilepic"
+            type="text"
+            className="block w-full p-2 border border-border rounded-lg"
+            value={edit.profilepic}
+            onChange={handleEditChange}
+          />
+        </div>
+        </div>
+          <div>
+        <div className="mb-4">
+        <label htmlFor="failedExperience" className="block text-sm font-medium text-gray-700">
+          Failed Experience
+        </label>
+        {edit.failedExperience?.map((experience, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <input
+              type="text"
+              value={experience}
+              onChange={(e) => handleArrayEdit('failedExperience', index, e.target.value)}
+              className="mt-1 block w-full p-2 border border-border rounded-lg"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRemoveArrayItem('failedExperience', index)}
             >
-              <motion.div
-                className="bg-background p-6 rounded-lg w-96 shadow-lg"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <h2 className="text-2xl font-semibold mb-4">Edit Profile</h2>
-                <form>
-                  <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      className="mt-1 block w-full p-2 border border-border rounded-lg"
-                      defaultValue={userData?.username}
-                      onChange={handleedit}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700">
-                      Location
-                    </label>
-                    <input
-                      id="location"
-                      type="text"
-                      className="mt-1 block w-full p-2 border border-border rounded-lg"
-                      defaultValue={userData?.location}
-                      onChange={handleedit}
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
-                      Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      rows={4}
-                      className="mt-1 block w-full p-2 border border-border rounded-lg"
-                      defaultValue={userData?.bio}
-                      onChange={handleedit}
-                    />
-                    <div className="mb-4">
-                    <label htmlFor="profilepic" className="block text-sm font-medium text-gray-700">
-                      Profile Pic
-                    </label>
-                    <input
-                      id="profilepic"
-                      type="document"
-                      className="mt-1 block w-full p-2 border border-border rounded-lg"
-                      defaultValue={userData?.profilepic}
-                      onChange={handleedit}
-                    />
-                  </div>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={handleCloseModal}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handlechange}>Save</Button>
-                  </div>
-                </form>
-              </motion.div>
-            </motion.div>
-          )}
+              Remove
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => handleAddArrayItem('failedExperience')}
+        >
+          Add Experience
+        </Button>
+      </div>
+      
+      <div className="mb-4">
+        <label htmlFor="misEducation" className="block text-sm font-medium text-gray-700">
+          Mis-Education
+        </label>
+        {edit.misEducation?.map((education, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <input
+              type="text"
+              value={education}
+              onChange={(e) => handleArrayEdit('misEducation', index, e.target.value)}
+              className="mt-1 block w-full p-2 border border-border rounded-lg"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRemoveArrayItem('misEducation', index)}
+            >
+              Remove
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => handleAddArrayItem('misEducation')}
+        >
+          Add Education
+        </Button>
+      </div>
+      
+      <div className="mb-4">
+        <label htmlFor="failureHighlights" className="block text-sm font-medium text-gray-700">
+          Failure Highlights
+        </label>
+        {edit.failureHighlights?.map((highlight, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <input
+              type="text"
+              value={highlight}
+              onChange={(e) => handleArrayEdit('failureHighlights', index, e.target.value)}
+              className="mt-1 block w-full p-2 border border-border rounded-lg"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRemoveArrayItem('failureHighlights', index)}
+            >
+              Remove
+            </Button>
+          </div>
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => handleAddArrayItem('failureHighlights')}
+        >
+          Add Highlight
+        </Button>
+      </div>
+      </div>
+        <div className="space-y-6">
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" type="button" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+            <Button type="submit">Save</Button>
+          </div>
+        </div>
+      </form>
+    </motion.div>
+  </motion.div>
+)}
         </AnimatePresence>
       </div>
     </div>
