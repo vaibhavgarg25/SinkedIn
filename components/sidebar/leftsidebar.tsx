@@ -89,19 +89,24 @@ export function LeftSidebar() {
         <h3 className="font-semibold text-lg text-primary">
           {displayData.username}
         </h3>
-        <p className={`${isBioExpanded? "" : "inline"} text-sm text-muted-foreground`}>
-            {isBioExpanded
-              ? displayData.bio || "No bio available"
-              : (displayData.bio || "No bio available").slice(0, 80) + "..."}
-          </p>
-          {displayData.bio && displayData.bio.length > 50 && (
-            <button
-              className="ml-1 text-primary text-sm mt-2 focus:outline-none"
-              onClick={toggleBio}
-            >
-              {isBioExpanded ? "See Less" : "See More"}
-            </button>
+        <p className="text-sm text-muted-foreground">
+          {displayData.bio?.length > 80 ? (
+            <>
+              {isBioExpanded
+                ? displayData.bio
+                : displayData.bio.slice(0, 80) + "..."}
+              <button
+                className="ml-1 text-primary text-sm focus:outline-none"
+                onClick={toggleBio}
+              >
+                {isBioExpanded ? "See Less" : "See More"}
+              </button>
+            </>
+          ) : (
+            displayData.bio || "No bio available"
           )}
+        </p>
+
         <Link
             href="/profile"
             className={buttonVariants({
