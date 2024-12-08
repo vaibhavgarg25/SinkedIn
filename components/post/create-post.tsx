@@ -409,7 +409,7 @@ export function CreatePost() {
                     Share
                   </Button>
                 </div>
-                <hr className="my-4 border-secondary" /> {/* Divider line */}
+                <hr className="my-4 border-secondary" /> 
                 {commentBoxStates[post.id] && (
                   <>
                   <div className="mt-4">
@@ -443,13 +443,12 @@ export function CreatePost() {
                       </Button>
                     </div>
                   </div>
-                <hr className="my-4 border-secondary" /> {/* Divider line */}
                 {post.comments && post.comments.length > 0 && (
                   <div className="mt-4">
                     {post.comments.map((comment: any, index: any) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 mt-2 p-2 rounded-md bg-gray-100 dark:bg-slate-300 dark:text-black"
+                        className="flex items-center gap-2 mt-2 p-2 rounded-md bg-background"
                       >
                         <Avatar className="w-8 h-8">
                           <Image
