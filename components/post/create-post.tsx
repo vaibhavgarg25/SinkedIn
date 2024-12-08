@@ -18,7 +18,7 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { getAuth } from "firebase/auth";
 import { firebaseApp } from "@/lib/firebase";
-import { updateDoc, doc ,increment} from "firebase/firestore";
+import { updateDoc, doc, increment } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 type User = {
@@ -59,7 +59,7 @@ export function CreatePost() {
         ...doc.data(),
       }));
       setPosts(postsList);
-  
+
       // Update local dislikedPosts state for the current user
       const currentUser = auth.currentUser;
       if (currentUser) {
@@ -73,7 +73,7 @@ export function CreatePost() {
       setErrorMessage("An error occurred while fetching posts.");
     }
   };
-  
+
   const fetchUsers = async () => {
     try {
       const usersSnapshot = await getDocs(collection(db, "users"));
@@ -202,7 +202,8 @@ export function CreatePost() {
             userName: currentUser.displayName || "Anonymous",
             userId: currentUserId,
             dislikes: 0,
-            dislikedBy: [], // Initialize as an empty array
+            dislikedBy: [],
+            shares: 0, // Initialize share count
           });
 
           await fetchPosts();
@@ -226,55 +227,65 @@ export function CreatePost() {
   const handleDislike = async (postId: string) => {
     try {
       const currentUser = auth.currentUser;
-  
+
       if (!currentUser) {
         toast.error("You need to be logged in to dislike a post.");
         return;
       }
-  
+
       const postRef = doc(db, "posts", postId);
       const postIndex = posts.findIndex((post) => post.id === postId);
       const post = posts[postIndex];
-  
+
       // Check if the user has already disliked the post
       const userId = currentUser.uid;
       const hasDisliked = post.dislikedBy?.includes(userId);
-  
+
       if (hasDisliked) {
         // Remove dislike
-        const updatedDislikedBy = post.dislikedBy.filter((id: string) => id !== userId);
-  
+        const updatedDislikedBy = post.dislikedBy.filter(
+          (id: string) => id !== userId
+        );
+
         await updateDoc(postRef, {
           dislikes: Math.max((post.dislikes || 0) - 1, 0),
           dislikedBy: updatedDislikedBy,
         });
-  
+
         setPosts((prevPosts) =>
           prevPosts.map((p, idx) =>
             idx === postIndex
-              ? { ...p, dislikes: Math.max((post.dislikes || 0) - 1, 0), dislikedBy: updatedDislikedBy }
+              ? {
+                  ...p,
+                  dislikes: Math.max((post.dislikes || 0) - 1, 0),
+                  dislikedBy: updatedDislikedBy,
+                }
               : p
           )
         );
-  
+
         setDislikedPosts(dislikedPosts.filter((id) => id !== postId));
       } else {
         // Add dislike
         const updatedDislikedBy = [...(post.dislikedBy || []), userId];
-  
+
         await updateDoc(postRef, {
           dislikes: (post.dislikes || 0) + 1,
           dislikedBy: updatedDislikedBy,
         });
-  
+
         setPosts((prevPosts) =>
           prevPosts.map((p, idx) =>
             idx === postIndex
-              ? { ...p, dislikes: (post.dislikes || 0) + 1, dislikedBy: updatedDislikedBy }
+              ? {
+                  ...p,
+                  dislikes: (post.dislikes || 0) + 1,
+                  dislikedBy: updatedDislikedBy,
+                }
               : p
           )
         );
-  
+
         setDislikedPosts([...dislikedPosts, postId]);
       }
     } catch (error) {
@@ -282,7 +293,42 @@ export function CreatePost() {
       toast.error("Failed to update dislikes.");
     }
   };
-  
+
+  const handleShare = async (postId: string) => {
+    try {
+      const postRef = doc(db, "posts", postId);
+      const postIndex = posts.findIndex((post) => post.id === postId);
+
+      if (postIndex !== -1) {
+        // Increment the share count in Firestore
+        await updateDoc(postRef, {
+          shares: increment(1),
+        });
+
+        // Update local state
+        setPosts((prevPosts) =>
+          prevPosts.map((p, idx) =>
+            idx === postIndex ? { ...p, shares: (p.shares || 0) + 1 } : p
+          )
+        );
+
+        // Optional: Copy link to clipboard or trigger Web Share API
+        const shareUrl = `${window.location.origin}/post/${postId}`;
+        if (navigator.share) {
+          await navigator.share({
+            title: "Check out this post!",
+            url: shareUrl,
+          });
+        } else {
+          await navigator.clipboard.writeText(shareUrl);
+          toast.success("Post link copied to clipboard!");
+        }
+      }
+    } catch (error) {
+      console.error("Error sharing post:", error);
+      toast.error("Failed to share post.");
+    }
+  };
 
   const toggleCommentBox = (postId: string) => {
     setCommentBoxStates((prev: any) => ({
@@ -319,15 +365,15 @@ export function CreatePost() {
               onChange={(e: any) => setPostContent(e.target.value)}
             />
             <div className="justify-between items-center mt-4 md:flex">
-              {/* <div className="flex gap-2">
+              <div className="flex gap-2">
                 <Button variant="outline" size="sm">
                   Add Proof
                 </Button>
                 <Button variant="outline" size="sm">
-                  <Link2 className="h-4 w-4 mr-2"/>
+                  <Link2 className="h-4 w-4 mr-2" />
                   Rejection Letter
                 </Button>
-              </div> */}
+              </div>
               <Button
                 size="sm"
                 onClick={handlePostSubmit}
@@ -403,79 +449,81 @@ export function CreatePost() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="items-center gap-2"
+                    onClick={() => handleShare(post.id)}
+                    className="flex items-center gap-2"
                   >
-                    {/* <Image className="h-4 w-4" /> */}
-                    Share
+                    <Link2 className="h-4 w-4" />
+                    {post.shares || 0} Shares
                   </Button>
                 </div>
+                <hr className="my-4 border-secondary" />
                 {commentBoxStates[post.id] && (
                   <>
-                  <hr className="my-4 border-secondary" /> 
-                  <div className="mt-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-8 h-8">
-                        <Image
-                          src={currentUserProfilePic || ""}
-                          height={100}
-                          width={100}
-                          alt="User Avatar"
-                          className="rounded-full"
-                        />
-                      </Avatar>
-                      <Textarea
-                        placeholder="Write a comment..."
-                        className="flex-1 min-h-[40px] resize-none text-sm"
-                        value={commentInputs[post.id] || ""}
-                        onChange={(e: any) =>
-                          setCommentInputs((prev: any) => ({
-                            ...prev,
-                            [post.id]: e.target.value,
-                          }))
-                        }
-                      />
-                      <Button
-                        size="sm"
-                        className="ml-2"
-                        onClick={() => handlePostComment(post.id)}
-                      >
-                        Post
-                      </Button>
-                    </div>
-                  </div>
-                {post.comments && post.comments.length > 0 && (
-                  <div className="mt-4">
-                    {post.comments.map((comment: any, index: any) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-2 mt-2 p-2 rounded-md bg-background"
-                      >
+                    <div className="mt-4">
+                      <div className="flex items-center gap-2">
                         <Avatar className="w-8 h-8">
                           <Image
-                            src={
-                              users[comment.userId]?.profilepic ||
-                              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                            }
-                            width={100}
+                            src={currentUserProfilePic || ""}
                             height={100}
-                            alt="Commenter's Avatar"
+                            width={100}
+                            alt="User Avatar"
                             className="rounded-full"
                           />
                         </Avatar>
-                        <div>
-                          <p className="font-bold text-sm">
-                            {users[comment.userId]?.username || "Anonymous"}
-                          </p>
-                          <p>{comment.text}</p>
-                          <p className="text-gray-500 text-xs">
-                            {new Date(comment.timestamp).toLocaleString()}
-                          </p>
-                        </div>
+                        <Textarea
+                          placeholder="Write a comment..."
+                          className="flex-1 min-h-[40px] resize-none text-sm"
+                          value={commentInputs[post.id] || ""}
+                          onChange={(e: any) =>
+                            setCommentInputs((prev: any) => ({
+                              ...prev,
+                              [post.id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          className="ml-2"
+                          onClick={() => handlePostComment(post.id)}
+                        >
+                          Post
+                        </Button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                    {post.comments && post.comments.length > 0 && (
+                      <div className="mt-4">
+                        {post.comments.map((comment: any, index: any) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 mt-2 p-2 rounded-md bg-background"
+                          >
+                            <Avatar className="w-8 h-8">
+                              <Image
+                                src={
+                                  users[comment.userId]?.profilepic ||
+                                  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                                }
+                                width={100}
+                                height={100}
+                                alt="Commenter's Avatar"
+                                className="rounded-full"
+                              />
+                            </Avatar>
+                            <div>
+                              <p className="font-bold text-sm">
+                                {users[comment.userId]?.username || "Anonymous"}
+                              </p>
+                              <p>{comment.text}</p>
+                              <p className="text-gray-500 text-xs">
+                                {new Date(comment.timestamp).toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
                 )}
-                </>)}
               </Card>
             );
           })

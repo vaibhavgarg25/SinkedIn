@@ -40,16 +40,16 @@ export function Navbar() {
                 <Home className="h-[1.2rem] w-[1.2rem]" />
               </Button>
             </Link>
-            <Link href="/messages">
+            {/* <Link href="/messages">
               <Button variant="ghost" size="icon" title="Messages">
                 <MessageSquare className="h-[1.2rem] w-[1.2rem]" />
               </Button>
-            </Link>
-            <Link href="/notifications">
+            </Link> */}
+            {/* <Link href="/notifications">
               <Button variant="ghost" size="icon" title="Notifications">
                 <Bell className="h-[1.2rem] w-[1.2rem]" />
               </Button>
-            </Link>
+            </Link> */}
             <ThemeToggle />
               <Link href="/profile">
                 <Button variant="ghost" size="icon" title="Profile">
