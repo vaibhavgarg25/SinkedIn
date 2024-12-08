@@ -1,7 +1,6 @@
 "use client";
 import { useEffect,useState } from "react";
 import { CreatePost } from "@/components/post/create-post";
-import { PostCard } from "@/components/post/post-card";
 import { LeftSidebar } from "@/components/sidebar/leftsidebar";
 import { RightSidebar } from "@/components/sidebar/rightsidebar";
 import { useRouter } from "next/navigation";

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   collection,
   addDoc,
@@ -18,25 +18,34 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { getAuth } from "firebase/auth";
 import { firebaseApp } from "@/lib/firebase";
+import { updateDoc, doc ,increment} from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 type User = {
   id: string;
   username: string;
   email: string;
-  profilepic?: string; 
+  profilepic?: string;
 };
 
 export function CreatePost() {
-  const [postContent, setPostContent] = useState("");
+  const [postContent, setPostContent] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
   const [users, setUsers] = useState<Record<string, User>>({});
-  const router =useRouter()
+  const router = useRouter();
   const [dislikedPosts, setDislikedPosts] = useState<string[]>([]);
-  const [commentBoxStates, setCommentBoxStates] = useState<{ [key: string]: boolean }>({});
-  const [currentUserProfilePic, setCurrentUserProfilePic] = useState<string | null>(null);
+  const dislikes = useRef(0);
+  const [commentBoxStates, setCommentBoxStates] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [currentUserProfilePic, setCurrentUserProfilePic] = useState<
+    string | null
+  >(null);
+  const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>(
+    {}
+  );
 
   const fetchPosts = async () => {
     try {
@@ -45,14 +54,26 @@ export function CreatePost() {
       const postsSnapshot = await getDocs(postsQuery);
       const postsList = postsSnapshot.docs.map((doc) => ({
         id: doc.id,
+        dislikes: doc.data().dislikes || 0,
+        dislikedBy: doc.data().dislikedBy || [], // Fetch dislikedBy array
         ...doc.data(),
       }));
       setPosts(postsList);
+  
+      // Update local dislikedPosts state for the current user
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const dislikedPostIds = postsList
+          .filter((post) => post.dislikedBy.includes(currentUser.uid))
+          .map((post) => post.id);
+        setDislikedPosts(dislikedPostIds);
+      }
     } catch (error) {
       console.error("Error fetching posts:", error);
       setErrorMessage("An error occurred while fetching posts.");
     }
   };
+  
   const fetchUsers = async () => {
     try {
       const usersSnapshot = await getDocs(collection(db, "users"));
@@ -74,7 +95,9 @@ export function CreatePost() {
 
     try {
       const userDoc = await getDocs(collection(db, "users"));
-      const userData = userDoc.docs.find((doc) => doc.id === currentUser.uid)?.data();
+      const userData = userDoc.docs
+        .find((doc) => doc.id === currentUser.uid)
+        ?.data();
 
       if (userData && userData.profilepic) {
         setCurrentUserProfilePic(userData.profilepic);
@@ -92,8 +115,58 @@ export function CreatePost() {
   }, [router]);
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchPosts(),    fetchCurrentUserProfile(),      fetchUsers()]).finally(() => setLoading(false));
+    Promise.all([
+      fetchPosts(),
+      fetchCurrentUserProfile(),
+      fetchUsers(),
+    ]).finally(() => setLoading(false));
   }, [fetchCurrentUserProfile]);
+  const handlePostComment = async (postId: string) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      console.error("User not logged in.");
+      return;
+    }
+
+    const commentText = commentInputs[postId];
+    if (!commentText.trim()) {
+      toast.error("Comment cannot be empty.");
+      return;
+    }
+
+    try {
+      const postRef = doc(db, "posts", postId);
+
+      // Get the current comments from the document
+      const postSnapshot = await getDocs(
+        query(collection(db, "posts"), orderBy("timestamp", "desc"))
+      );
+      const postDoc = postSnapshot.docs.find((doc) => doc.id === postId);
+
+      const postComments = postDoc?.data()?.comments || [];
+
+      // Manually create the timestamp (client-side)
+      const newComment = {
+        userId: currentUser.uid,
+        text: commentText,
+        timestamp: Date.now(),
+      };
+
+      await updateDoc(postRef, {
+        comments: [...postComments, newComment],
+      });
+
+      setCommentInputs((prev: any) => ({
+        ...prev,
+        [postId]: "",
+      }));
+
+      toast.success("Comment posted successfully.");
+    } catch (error) {
+      console.error("Posting Comment Error:", error);
+      toast.error("Failed to post comment.");
+    }
+  };
 
   const handlePostSubmit = async () => {
     setLoading(true);
@@ -128,6 +201,8 @@ export function CreatePost() {
             timestamp: serverTimestamp(),
             userName: currentUser.displayName || "Anonymous",
             userId: currentUserId,
+            dislikes: 0,
+            dislikedBy: [], // Initialize as an empty array
           });
 
           await fetchPosts();
@@ -148,16 +223,69 @@ export function CreatePost() {
     }
   };
 
-  const handleDislike = (postId: string) => {
-    if (dislikedPosts.includes(postId)) {
-      setDislikedPosts(dislikedPosts.filter((id) => id !== postId));
-    } else {
-      setDislikedPosts([...dislikedPosts, postId]);
+  const handleDislike = async (postId: string) => {
+    try {
+      const currentUser = auth.currentUser;
+  
+      if (!currentUser) {
+        toast.error("You need to be logged in to dislike a post.");
+        return;
+      }
+  
+      const postRef = doc(db, "posts", postId);
+      const postIndex = posts.findIndex((post) => post.id === postId);
+      const post = posts[postIndex];
+  
+      // Check if the user has already disliked the post
+      const userId = currentUser.uid;
+      const hasDisliked = post.dislikedBy?.includes(userId);
+  
+      if (hasDisliked) {
+        // Remove dislike
+        const updatedDislikedBy = post.dislikedBy.filter((id: string) => id !== userId);
+  
+        await updateDoc(postRef, {
+          dislikes: Math.max((post.dislikes || 0) - 1, 0),
+          dislikedBy: updatedDislikedBy,
+        });
+  
+        setPosts((prevPosts) =>
+          prevPosts.map((p, idx) =>
+            idx === postIndex
+              ? { ...p, dislikes: Math.max((post.dislikes || 0) - 1, 0), dislikedBy: updatedDislikedBy }
+              : p
+          )
+        );
+  
+        setDislikedPosts(dislikedPosts.filter((id) => id !== postId));
+      } else {
+        // Add dislike
+        const updatedDislikedBy = [...(post.dislikedBy || []), userId];
+  
+        await updateDoc(postRef, {
+          dislikes: (post.dislikes || 0) + 1,
+          dislikedBy: updatedDislikedBy,
+        });
+  
+        setPosts((prevPosts) =>
+          prevPosts.map((p, idx) =>
+            idx === postIndex
+              ? { ...p, dislikes: (post.dislikes || 0) + 1, dislikedBy: updatedDislikedBy }
+              : p
+          )
+        );
+  
+        setDislikedPosts([...dislikedPosts, postId]);
+      }
+    } catch (error) {
+      console.error("Error updating dislikes:", error);
+      toast.error("Failed to update dislikes.");
     }
   };
+  
 
   const toggleCommentBox = (postId: string) => {
-    setCommentBoxStates((prev) => ({
+    setCommentBoxStates((prev: any) => ({
       ...prev,
       [postId]: !prev[postId],
     }));
@@ -171,11 +299,11 @@ export function CreatePost() {
         </div>
       )}
 
-      <Card className="p-4">
+      <Card className="p-4 ">
         <div className="flex gap-4">
           <Avatar className="w-10 h-10">
             <Image
-            loading="lazy"
+              loading="lazy"
               src={currentUserProfilePic || ""}
               width={100}
               height={100}
@@ -188,7 +316,7 @@ export function CreatePost() {
               placeholder="Share your latest failure..."
               className="min-h-[100px]"
               value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
+              onChange={(e: any) => setPostContent(e.target.value)}
             />
             <div className="justify-between items-center mt-4 md:flex">
               <div className="flex gap-2">
@@ -200,7 +328,12 @@ export function CreatePost() {
                   Rejection Letter
                 </Button>
               </div>
-              <Button size="sm" onClick={handlePostSubmit} disabled={loading} className="my-2">
+              <Button
+                size="sm"
+                onClick={handlePostSubmit}
+                disabled={loading}
+                className="my-2"
+              >
                 Confess
               </Button>
             </div>
@@ -211,52 +344,53 @@ export function CreatePost() {
 
       <div className="mt-6">
         {posts.length > 0 ? (
-          posts.map((post) => {
+          posts.map((post: any) => {
             const user = users[post.userId];
-            const profilePic = user?.profilepic || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+            const profilePic =
+              user?.profilepic ||
+              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
             return (
-            <Card key={post.id} className="p-4 mb-4">
-              <div className="flex gap-4">
-                <Avatar className="w-10 h-10">
-                  <Image
+              <Card key={post.id} className="p-4 mb-4">
+                <div className="flex gap-4">
+                  <Avatar className="w-10 h-10">
+                    <Image
                       src={profilePic}
                       height={100}
                       width={100}
                       alt={`${user?.username || "Anonymous"}'s avatar`}
-                    className="rounded-full"
-                  />
-                </Avatar>
-                <div className="flex-1">
-                  <p className="font-bold">{post.userName}</p>
-                  <p className="text-sm text-gray-600">
-                    {new Date(post.timestamp?.seconds * 1000).toLocaleString()}
-                  </p>
-                  <p className="mt-2">{post.content}</p>
-                </div>
-              </div>
-
-              <hr className="my-4 border-secondary" /> {/* Divider line */}
-
-              <div className="flex justify-around text-sm text-gray-500">
-                <motion.div whileTap={{ scale: 0.9 }}>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDislike(post.id)}
-                    className="flex items-center gap-2"
-                  >
-                    <ThumbsDown
-                      className={`h-4 w-4 ${
-                        dislikedPosts.includes(post.id)
-                          ? "text-red-500"
-                          : "text-muted-foreground"
-                      }`}
+                      className="rounded-full"
                     />
-                    Dislike
-                  </Button>
-                </motion.div>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-bold">{post.userName}</p>
+                    <p className="text-sm text-gray-600">
+                      {new Date(
+                        post.timestamp?.seconds * 1000
+                      ).toLocaleString()}
+                    </p>
+                    <p className="mt-2">{post.content}</p>
+                  </div>
+                </div>
+                <hr className="my-4 border-secondary" /> {/* Divider line */}
+                <div className="flex justify-around text-sm text-gray-500">
+                  <motion.div whileTap={{ scale: 0.9 }}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDislike(post.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <ThumbsDown
+                        className={`h-4 w-4 ${
+                          dislikedPosts.includes(post.id)
+                            ? "text-red-500"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                      {post.dislikes} Dislike
+                    </Button>
+                  </motion.div>
 
-              
                   <Button
                     variant="ghost"
                     size="sm"
@@ -266,37 +400,85 @@ export function CreatePost() {
                     <MessageCircle className="h-4 w-4" />
                     Comment
                   </Button>
-                  <Button variant="ghost" size="sm" className="items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="items-center gap-2"
+                  >
                     {/* <Image className="h-4 w-4" /> */}
                     Share
                   </Button>
-                
-              </div>
-
-              {commentBoxStates[post.id] && ( // Conditionally render the comment bar
-                <div className="mt-4">
-                  <div className="flex items-center gap-2">
-                    <Avatar className="w-8 h-8">
-                      <Image
-                        src={currentUserProfilePic || ""}
-                        height={100}
-                        width={100}
-                        alt="User Avatar"
-                        className="rounded-full"
-                      />
-                    </Avatar>
-                    <Textarea
-                      placeholder="Write a comment..."
-                      className="flex-1 min-h-[40px] resize-none text-sm"
-                    />
-                    <Button size="sm" className="ml-2">
-                      Post
-                    </Button>
-                  </div>
                 </div>
-              )}
-            </Card>)
-})
+                <hr className="my-4 border-secondary" /> 
+                {commentBoxStates[post.id] && (
+                  <>
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        <Image
+                          src={currentUserProfilePic || ""}
+                          height={100}
+                          width={100}
+                          alt="User Avatar"
+                          className="rounded-full"
+                        />
+                      </Avatar>
+                      <Textarea
+                        placeholder="Write a comment..."
+                        className="flex-1 min-h-[40px] resize-none text-sm"
+                        value={commentInputs[post.id] || ""}
+                        onChange={(e: any) =>
+                          setCommentInputs((prev: any) => ({
+                            ...prev,
+                            [post.id]: e.target.value,
+                          }))
+                        }
+                      />
+                      <Button
+                        size="sm"
+                        className="ml-2"
+                        onClick={() => handlePostComment(post.id)}
+                      >
+                        Post
+                      </Button>
+                    </div>
+                  </div>
+                {post.comments && post.comments.length > 0 && (
+                  <div className="mt-4">
+                    {post.comments.map((comment: any, index: any) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 mt-2 p-2 rounded-md bg-background"
+                      >
+                        <Avatar className="w-8 h-8">
+                          <Image
+                            src={
+                              users[comment.userId]?.profilepic ||
+                              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                            }
+                            width={100}
+                            height={100}
+                            alt="Commenter's Avatar"
+                            className="rounded-full"
+                          />
+                        </Avatar>
+                        <div>
+                          <p className="font-bold text-sm">
+                            {users[comment.userId]?.username || "Anonymous"}
+                          </p>
+                          <p>{comment.text}</p>
+                          <p className="text-gray-500 text-xs">
+                            {new Date(comment.timestamp).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                </>)}
+              </Card>
+            );
+          })
         ) : (
           <div className="flex h-screen justify-center items-center">
             <HashLoader color="white" />
