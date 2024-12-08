@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Chatbot from "@/components/chatbot";
 const inter = Inter({ subsets: ["latin"] });
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 export default function RootLayout({
@@ -36,6 +37,7 @@ export default function RootLayout({
           </main>
           </AuthProvider>
         </ThemeProvider>
+        <SpeedInsights/>
         <Chatbot />
       </body>
     </html>
