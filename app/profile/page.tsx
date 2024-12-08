@@ -306,27 +306,26 @@ export default function Profile() {
                 <AvatarFallback>{userData?.username?.[0] || 'U'}</AvatarFallback>
               </Avatar>
               <div className="mt-16">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h1 className="text-2xl font-bold">{userData?.username || "User"}</h1>
-                    <p className="text-muted-foreground">{userData?.email}</p>
-                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>{userData?.location || "Unknown location"}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={handleOpenModal}>
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={handleLogout}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Logout
-                    </Button>
+              <div className="flex flex-col sm:flex-row justify-between items-start space-y-2 sm:space-y-0">
+                <div>
+                  <h1 className="text-2xl font-bold">{userData?.username || "User"}</h1>
+                  <p className="text-muted-foreground">{userData?.email}</p>
+                  <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span>{userData?.location || "Unknown location"}</span>
                   </div>
                 </div>
-
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto" onClick={handleOpenModal}>
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" className="w-full sm:w-auto border border-border" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </div>
                 <div className="mt-6">
                   <p className="text-sm text-muted-foreground">{userData?.bio || "No bio available"}</p>
                 </div>

@@ -36,18 +36,16 @@ export function LeftSidebar() {
       if (docSnap.exists()) {
         setUserData(docSnap.data() as UserData);
       } else {
-        // Set dummy data if no document found
         setUserData({
           username: "Anonymous User",
           email: user.email || "user@example.com",
           bio: "Embracing failures as stepping stones to success",
-          profilepic: "/default-avatar.png", // Adjust path to your default avatar
+          profilepic: "/default-avatar.png",
           location: "Unknown",
         });
       }   
     } catch (error) {
       console.error("Error fetching user data:", error);
-      // Set dummy data in case of error
       setUserData({
         username: "Anonymous User",
         email: user?.email || "user@example.com",
@@ -76,7 +74,7 @@ export function LeftSidebar() {
   const toggleBio = () => setIsBioExpanded(!isBioExpanded);
 
   return (
-    <div className="hidden w-80 absolute left-0 top-16 h-screen bg-background border-r border-border p-4 transition-colors md:block">
+    <div className="hidden w-[16%] absolute left-0 top-16 h-screen bg-background border-r border-border p-4 transition-colors md:block">
       <div className="space-y-6">
       <div className="p-4 rounded-lg border border-border bg-card shadow-md text-center">
         <Avatar className="w-16 h-16 mx-auto mb-4">
