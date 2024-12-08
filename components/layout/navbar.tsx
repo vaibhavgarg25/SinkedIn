@@ -34,7 +34,8 @@ export function Navbar() {
 
         <div className="flex flex-1 items-center space-x-2 md:justify-end">
           <div className="hidden items-center space-x-4 md:flex">
-            <Link href="/feed">
+            {loggedIn ? (<>
+              <Link href="/feed">
               <Button variant="ghost" size="icon" title="Feed">
                 <Home className="h-[1.2rem] w-[1.2rem]" />
               </Button>
@@ -50,44 +51,66 @@ export function Navbar() {
               </Button>
             </Link>
             <ThemeToggle />
-            {loggedIn ? (
               <Link href="/profile">
                 <Button variant="ghost" size="icon" title="Profile">
                   <User className="h-[1.2rem] w-[1.2rem]" />
                 </Button>
               </Link>
+              </>
             ) : (
+              <>
               <Link href="/login">
                 <Button size="sm" title="Login">
                   Login
                 </Button>
               </Link>
+              <Link href="/register">
+                <Button size="sm" title="Login">
+                  Sign Up
+                </Button>
+              </Link>
+              </>
             )}
           </div>
-            <div className="inline-flex items-center justify-center w-screen md:hidden">
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 h-10 text-sm text-lite hover:bg-[#1a1f22] rounded-lg"
-              >
-                <svg
-                  className="w-5 h-5"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 17 14"
+              {loggedIn ? (
+                <div className="inline-flex items-center justify-center w-screen md:hidden">
+                  <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="p-2 h-10 text-sm text-lite rounded-lg"
                 >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M1 1h15M1 7h15M1 13h15"
-                  />
-                </svg>
-              </motion.button>
-            </div>
+                  <svg
+                    className="w-5 h-5"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 17 14"
+                  >
+                    <path
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M1 1h15M1 7h15M1 13h15"
+                    />
+                  </svg>
+                </motion.button>
+              </div>
+                )
+                :(
+                  <div className="inline-flex items-center gap-3 justify-center w-[70vw] md:hidden">
+                    <Link href="/login">
+                      <Button size="sm" title="Login">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link href="/register">
+                      <Button size="sm" title="Login">
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </div>)}
         </div>
       </div>
       <div 
@@ -107,19 +130,16 @@ export function Navbar() {
   >
     <ul className="bg-background flex flex-col text-center uppercase font-extrabold">
       <li>
-        <Link href="/feed" className="block py-2 px-3 text-white bg-background rounded" aria-current="page">Feed</Link>
+        <Link href="/feed" className="block py-2 px-3 text-white bg-background rounded" aria-current="page" onClick={() => setIsMenuOpen(!isMenuOpen)}>Feed</Link>
       </li>
       <li>
-        <Link href="/messages" className="block py-2 px-3 text-white bg-background rounded" aria-current="page">Messages</Link>
-      </li>
-      <li>
-        <Link href="/notifications" className="block py-2 px-3 text-white bg-background rounded" aria-current="page">Notifications</Link>
+        <Link href="/network" className="block py-2 px-3 text-white bg-background rounded" aria-current="page" onClick={() => setIsMenuOpen(!isMenuOpen)}>Network</Link>
       </li>
       <li>
         {loggedIn ? (
-          <Link href="/profile" className="block py-2 px-3 text-white bg-background rounded" aria-current="page">Profile</Link>
+          <Link href="/profile" className="block py-2 px-3 text-white bg-background rounded" aria-current="page" onClick={() => setIsMenuOpen(!isMenuOpen)}>Profile</Link>
         ) : (
-          <Link href="/login" className="block py-2 px-3 text-white bg-background rounded" aria-current="page">Login</Link>
+          <Link href="/login" className="block py-2 px-3 text-white bg-background rounded" aria-current="page" onClick={() => setIsMenuOpen(!isMenuOpen)}>Login</Link>
         )}
       </li>
     </ul>

@@ -319,15 +319,15 @@ export function CreatePost() {
               onChange={(e: any) => setPostContent(e.target.value)}
             />
             <div className="justify-between items-center mt-4 md:flex">
-              <div className="flex gap-2">
+              {/* <div className="flex gap-2">
                 <Button variant="outline" size="sm">
                   Add Proof
                 </Button>
                 <Button variant="outline" size="sm">
-                  <Link2 className="h-4 w-4 mr-2" />
+                  <Link2 className="h-4 w-4 mr-2"/>
                   Rejection Letter
                 </Button>
-              </div>
+              </div> */}
               <Button
                 size="sm"
                 onClick={handlePostSubmit}
