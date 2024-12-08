@@ -411,6 +411,7 @@ export function CreatePost() {
                 </div>
                 <hr className="my-4 border-secondary" /> {/* Divider line */}
                 {commentBoxStates[post.id] && (
+                  <>
                   <div className="mt-4">
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
@@ -442,7 +443,6 @@ export function CreatePost() {
                       </Button>
                     </div>
                   </div>
-                )}
                 <hr className="my-4 border-secondary" /> {/* Divider line */}
                 {post.comments && post.comments.length > 0 && (
                   <div className="mt-4">
@@ -476,6 +476,7 @@ export function CreatePost() {
                     ))}
                   </div>
                 )}
+                </>)}
               </Card>
             );
           })
