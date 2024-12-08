@@ -218,7 +218,7 @@ export function CreatePost() {
         </div>
       )}
 
-      <Card className="p-4 border-black border-4">
+      <Card className="p-4 ">
         <div className="flex gap-4">
           <Avatar className="w-10 h-10">
             <Image
