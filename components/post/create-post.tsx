@@ -409,9 +409,9 @@ export function CreatePost() {
                     Share
                   </Button>
                 </div>
-                <hr className="my-4 border-secondary" /> 
                 {commentBoxStates[post.id] && (
                   <>
+                  <hr className="my-4 border-secondary" /> 
                   <div className="mt-4">
                     <div className="flex items-center gap-2">
                       <Avatar className="w-8 h-8">
