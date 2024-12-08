@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { useSearchParams } from "next/navigation"; // For extracting query params
+import { useSearchParams } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { HashLoader } from "react-spinners";
+import Image from "next/image";
 
 type Post = {
   id: string;
@@ -23,8 +24,8 @@ type User = {
 
 export default function NetworkPost() {
   const searchParams = useSearchParams();
-  const userId = searchParams.get("id"); // Renaming the query parameter to avoid conflict
-  console.log("User ID from query params:", userId); // Debug log to check value
+  const userId = searchParams.get("id"); // Extract user ID from query params
+  console.log("User ID from query params:", userId);
 
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -35,31 +36,28 @@ export default function NetworkPost() {
       console.log("No user ID provided in the query.");
       return;
     }
-    useEffect(() => {
-      const queryParams = new URLSearchParams(window.location.search);
-      console.log("Query Parameters:", queryParams.toString());
-    }, []);
-    
+
+    // Log query parameters
+    const queryParams = new URLSearchParams(window.location.search);
+    console.log("Query Parameters:", queryParams.toString());
 
     const fetchUserAndPosts = async () => {
       try {
-        // Fetch user details using the userId from query params
         const userQuery = query(collection(db, "users"), where("id", "==", userId));
         const userSnapshot = await getDocs(userQuery);
-
-        // Check if user exists
+    
         if (!userSnapshot.empty) {
           const userDetails = userSnapshot.docs[0].data() as User;
-          setUser({ id: userSnapshot.docs[0].id, ...userDetails });
+          const { id: userDetailsId, ...restUserDetails } = userDetails;
+    
+          setUser({ id: userSnapshot.docs[0].id, ...restUserDetails });
         } else {
           console.log("User not found.");
         }
-
-        // Fetch user posts
+    
         const postsQuery = query(collection(db, "posts"), where("userId", "==", userId));
         const postsSnapshot = await getDocs(postsQuery);
-
-        // Fetch posts and set state
+    
         const userPosts = postsSnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -71,9 +69,9 @@ export default function NetworkPost() {
         setLoading(false);
       }
     };
-
+    
     fetchUserAndPosts();
-  }, [userId]); // Make sure to use the correct dependency (userId)
+  }, [userId]);
 
   if (loading)
     return (
@@ -95,8 +93,10 @@ export default function NetworkPost() {
       <div className="flex flex-col items-center mb-8">
         <Avatar className="w-32 h-32 mb-6">
           {user.avatar ? (
-            <img
+            <Image
               src={user.avatar}
+              height={100}
+              width={100}
               alt={`${user.username}'s avatar`}
               className="rounded-full"
             />

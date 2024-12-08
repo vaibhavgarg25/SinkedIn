@@ -29,7 +29,7 @@ type User = {
 };
 
 export function CreatePost() {
-  const [postContent, setPostContent] = useState("");
+  const [postContent, setPostContent] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
@@ -129,7 +129,7 @@ export function CreatePost() {
         comments: [...postComments, newComment],
       });
   
-      setCommentInputs((prev) => ({
+      setCommentInputs((prev:any) => ({
         ...prev,
         [postId]: "",
       }));
@@ -197,14 +197,14 @@ export function CreatePost() {
 
   const handleDislike = (postId: string) => {
     if (dislikedPosts.includes(postId)) {
-      setDislikedPosts(dislikedPosts.filter((id) => id !== postId));
+      setDislikedPosts(dislikedPosts.filter((id:any) => id !== postId));
     } else {
       setDislikedPosts([...dislikedPosts, postId]);
     }
   };
 
   const toggleCommentBox = (postId: string) => {
-    setCommentBoxStates((prev) => ({
+    setCommentBoxStates((prev:any) => ({
       ...prev,
       [postId]: !prev[postId],
     }));
@@ -218,7 +218,7 @@ export function CreatePost() {
         </div>
       )}
 
-      <Card className="p-4">
+      <Card className="p-4 border-black border-4">
         <div className="flex gap-4">
           <Avatar className="w-10 h-10">
             <Image
@@ -235,7 +235,7 @@ export function CreatePost() {
               placeholder="Share your latest failure..."
               className="min-h-[100px]"
               value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
+              onChange={(e:any) => setPostContent(e.target.value)}
             />
             <div className="justify-between items-center mt-4 md:flex">
               <div className="flex gap-2">
@@ -258,7 +258,7 @@ export function CreatePost() {
 
       <div className="mt-6">
         {posts.length > 0 ? (
-          posts.map((post) => {
+          posts.map((post:any) => {
             const user = users[post.userId];
             const profilePic = user?.profilepic || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
             return (
@@ -337,8 +337,8 @@ export function CreatePost() {
                       placeholder="Write a comment..."
                       className="flex-1 min-h-[40px] resize-none text-sm"
                       value={commentInputs[post.id] || ""}
-                      onChange={(e) =>
-                        setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                      onChange={(e:any) =>
+                        setCommentInputs((prev:any) => ({ ...prev, [post.id]: e.target.value }))
                       }
                     />
                     <Button size="sm" className="ml-2" onClick={() => handlePostComment(post.id)}>
