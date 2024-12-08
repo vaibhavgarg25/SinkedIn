@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { getAuth } from "firebase/auth";
 import { firebaseApp } from "@/lib/firebase";
+import { updateDoc, doc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 type User = {
@@ -37,6 +38,7 @@ export function CreatePost() {
   const [dislikedPosts, setDislikedPosts] = useState<string[]>([]);
   const [commentBoxStates, setCommentBoxStates] = useState<{ [key: string]: boolean }>({});
   const [currentUserProfilePic, setCurrentUserProfilePic] = useState<string | null>(null);
+  const [commentInputs, setCommentInputs] = useState<{ [key: string]: string }>({});
 
   const fetchPosts = async () => {
     try {
@@ -94,7 +96,52 @@ export function CreatePost() {
     setLoading(true);
     Promise.all([fetchPosts(),    fetchCurrentUserProfile(),      fetchUsers()]).finally(() => setLoading(false));
   }, [fetchCurrentUserProfile]);
-
+  const handlePostComment = async (postId: string) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const commentText = commentInputs[postId];
+    if (!commentText.trim()) {
+      toast.error("Comment cannot be empty.");
+      return;
+    }
+  
+    try {
+      const postRef = doc(db, "posts", postId);
+  
+      // Get the current comments from the document
+      const postSnapshot = await getDocs(query(collection(db, "posts"), orderBy("timestamp", "desc")));
+      const postDoc = postSnapshot.docs.find((doc) => doc.id === postId);
+  
+      const postComments = postDoc?.data()?.comments || [];
+  
+      // Manually create the timestamp (client-side)
+      const newComment = {
+        userId: currentUser.uid,
+        text: commentText,
+        timestamp: Date.now(),
+      };
+  
+      await updateDoc(postRef, {
+        comments: [...postComments, newComment],
+      });
+  
+      setCommentInputs((prev) => ({
+        ...prev,
+        [postId]: "",
+      }));
+  
+      toast.success("Comment posted successfully.");
+    } catch (error) {
+      console.error("Posting Comment Error:", error);
+      toast.error("Failed to post comment.");
+    }
+  };
+  
+  
   const handlePostSubmit = async () => {
     setLoading(true);
     if (postContent.trim()) {
@@ -272,8 +319,9 @@ export function CreatePost() {
                   </Button>
                 
               </div>
+              <hr className="my-4 border-secondary" /> {/* Divider line */}
 
-              {commentBoxStates[post.id] && ( // Conditionally render the comment bar
+              {commentBoxStates[post.id] && (
                 <div className="mt-4">
                   <div className="flex items-center gap-2">
                     <Avatar className="w-8 h-8">
@@ -288,13 +336,42 @@ export function CreatePost() {
                     <Textarea
                       placeholder="Write a comment..."
                       className="flex-1 min-h-[40px] resize-none text-sm"
+                      value={commentInputs[post.id] || ""}
+                      onChange={(e) =>
+                        setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                      }
                     />
-                    <Button size="sm" className="ml-2">
+                    <Button size="sm" className="ml-2" onClick={() => handlePostComment(post.id)}>
                       Post
                     </Button>
                   </div>
                 </div>
               )}
+              <hr className="my-4 border-secondary" /> {/* Divider line */}
+              {post.comments && post.comments.length > 0 && (
+          <div className="mt-4">
+            {post.comments.map((comment:any, index:any) => (
+              <div key={index} className="flex items-center gap-2 mt-2 p-2 rounded-md bg-gray-100 dark:bg-slate-300 dark:text-black">
+                <Avatar className="w-8 h-8">
+                  <Image
+                    src={users[comment.userId]?.profilepic || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}
+                    width={100}
+                    height={100}
+                    alt="Commenter's Avatar"
+                    className="rounded-full"
+                  />
+                </Avatar>
+                <div>
+                  <p className="font-bold text-sm">{users[comment.userId]?.username || "Anonymous"}</p>
+                  <p>{comment.text}</p>
+                  <p className="text-gray-500 text-xs">
+                    {new Date(comment.timestamp).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
             </Card>)
 })
         ) : (
