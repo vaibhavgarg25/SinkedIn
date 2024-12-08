@@ -1,135 +1,120 @@
-"use client";
-import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { useSearchParams } from "next/navigation"; // For extracting query params
-import { Avatar } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { HashLoader } from "react-spinners";
+'use client';
 
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  timestamp: string;
-};
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { firebaseApp } from '@/lib/firebase';
 
-type User = {
-  id: string;
+const db = getFirestore(firebaseApp);
+
+interface User {
   username: string;
   email: string;
-  avatar?: string;
-};
+  profilepic: string; 
+  bio: string;
+}
 
-export default function NetworkPost() {
-  const searchParams = useSearchParams();
-  const userId = searchParams.get("id"); // Renaming the query parameter to avoid conflict
-  console.log("User ID from query params:", userId); // Debug log to check value
+interface Post {
+  id: string;
+  content: string;
+  timestamp: string;
+}
 
+const NetworkPost = () => {
   const [user, setUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { id } = useParams();
 
   useEffect(() => {
-    if (!userId) {
-      console.log("No user ID provided in the query.");
-      return;
-    }
-    useEffect(() => {
-      const queryParams = new URLSearchParams(window.location.search);
-      console.log("Query Parameters:", queryParams.toString());
-    }, []);
-    
+    if (!id) return;
 
-    const fetchUserAndPosts = async () => {
+    const fetchUserData = async () => {
       try {
-        // Fetch user details using the userId from query params
-        const userQuery = query(collection(db, "users"), where("id", "==", userId));
-        const userSnapshot = await getDocs(userQuery);
+        const userDocRef = doc(db, 'users', id as string);
+        const userDoc = await getDoc(userDocRef);
 
-        // Check if user exists
-        if (!userSnapshot.empty) {
-          const userDetails = userSnapshot.docs[0].data() as User;
-          setUser({ id: userSnapshot.docs[0].id, ...userDetails });
-        } else {
-          console.log("User not found.");
+        if (userDoc.exists()) {
+          const userData = userDoc.data() as User;
+          setUser(userData);
+
+          const postsQuery = query(
+            collection(db, 'posts'),
+            where('userId', '==', id)
+          );
+          const postsSnapshot = await getDocs(postsQuery);
+
+          const fetchedPosts: Post[] = postsSnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+              id: doc.id,
+              content: data.content,
+              timestamp: data.timestamp?.toDate().toISOString() || '',
+            };
+          });
+
+          setPosts(fetchedPosts);
         }
-
-        // Fetch user posts
-        const postsQuery = query(collection(db, "posts"), where("userId", "==", userId));
-        const postsSnapshot = await getDocs(postsQuery);
-
-        // Fetch posts and set state
-        const userPosts = postsSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Post[];
-        setPosts(userPosts);
       } catch (error) {
-        console.error("Error fetching user or posts:", error);
-      } finally {
-        setLoading(false);
+        console.error('Error fetching data:', error);
       }
     };
 
-    fetchUserAndPosts();
-  }, [userId]); // Make sure to use the correct dependency (userId)
+    fetchUserData();
+  }, [id]);
 
-  if (loading)
+  if (!user) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <HashLoader color="white" />
+      <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <div>Loading user data...</div>
       </div>
     );
-
-  if (!user)
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-600">User not found. Please go back.</p>
-      </div>
-    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* User Details */}
-      <div className="flex flex-col items-center mb-8">
-        <Avatar className="w-32 h-32 mb-6">
-          {user.avatar ? (
+    <div className="min-h-screen bg-black text-white">
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        {/* User Details */}
+        <div className="mb-8 p-6 bg-black border border-white rounded-lg flex items-center gap-4">
+          {user.profilepic ? (
             <img
-              src={user.avatar}
-              alt={`${user.username}'s avatar`}
-              className="rounded-full"
+              src={user.profilepic}
+              alt={`${user.username}'s profile`}
+              className="w-16 h-16 rounded-full border border-white"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-full">
-              <span className="text-gray-600 text-3xl font-bold">
-                {user.username.charAt(0).toUpperCase()}
-              </span>
+            <div className="w-16 h-16 rounded-full bg-black border border-white flex items-center justify-center text-white">
+              N/A
             </div>
           )}
-        </Avatar>
-        <h1 className="text-4xl font-bold">{user.username}</h1>
-        <p className="text-lg text-muted-foreground">{user.email}</p>
-      </div>
-
-      {/* User Posts */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {posts.length > 0 ? (
-          posts.map((post) => (
-            <Card key={post.id} className="p-4 shadow-md">
-              <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                {new Date(post.timestamp).toLocaleString()}
-              </p>
-              <p className="text-base">{post.content}</p>
-            </Card>
-          ))
-        ) : (
-          <div className="text-center col-span-full">
-            <p className="text-gray-600">No posts found for this user.</p>
+          <div>
+            <h1 className="text-2xl font-bold mb-2">{user.username}</h1>
+            <p>Email: <span className="text-white">{user.email}</span></p>
+            <p>Bio:<span className="text-white">{user.bio}</span></p>
           </div>
+        </div>
+
+        {/* User Posts */}
+        <h2 className="text-xl font-semibold mb-4">User Posts</h2>
+        {posts.length > 0 ? (
+          <div className="grid gap-6">
+            {posts.map((post) => (
+              <div
+                key={post.id}
+                className="p-6 bg-black border border-white rounded-lg hover:bg-white hover:text-black transition duration-300"
+              >
+                <p className="mb-2">{post.content}</p>
+                <small className="text-sm">
+                  Posted on: {new Date(post.timestamp).toLocaleDateString()}
+                </small>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p>No posts found for this user.</p>
         )}
       </div>
     </div>
   );
-}
+};
+
+export default NetworkPost;
