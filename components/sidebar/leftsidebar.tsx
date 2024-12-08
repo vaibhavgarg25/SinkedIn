@@ -130,7 +130,7 @@ export function LeftSidebar() {
             <Users className="h-5 w-5 mr-3" />
             <span>Network</span>
           </Link>
-          {/* <Link
+          <Link
             href="/jobs"
             className={buttonVariants({
               variant: "ghost",
@@ -149,7 +149,7 @@ export function LeftSidebar() {
           >
             <BookOpen className="h-5 w-5 mr-3" />
             <span>Learning</span>
-          </Link> */}
+          </Link>
         </nav>
       </div>
     </div>
