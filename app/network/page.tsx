@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
+import Image from "next/image";
 import { collection, getDocs } from "firebase/firestore";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -14,7 +15,7 @@ type User = {
   id: string;
   username: string;
   email: string;
-  avatar?: string; // Optional field for avatar
+  profilepic?: string; 
 };
 
 export default function NetworkPage() {
@@ -97,19 +98,15 @@ export default function NetworkPage() {
             >
               <div className="flex flex-col items-center">
                 <Avatar className="w-24 h-24 mb-4">
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={`${user.username}'s avatar`}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-full">
-                      <span className="text-gray-600 text-lg font-bold">
-                        {user.username.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
+                <Image
+                    src={`${user?.profilepic||"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}`}
+                    height={100} 
+                    width={100}
+                    loading="lazy"
+                    alt={`${user?.username || "User"}'s avatar`}
+                    className="rounded-full"
+                  />
+
                 </Avatar>
                 <h2 className="text-lg font-semibold">
                   {user.username || "Anonymous"}

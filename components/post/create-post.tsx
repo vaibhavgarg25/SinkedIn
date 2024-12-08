@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   collection,
   addDoc,
@@ -12,18 +12,31 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Image, Link2, ThumbsDown, MessageCircle } from "lucide-react";
+import { Link2, ThumbsDown, MessageCircle } from "lucide-react";
 import { HashLoader } from "react-spinners";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
+import { getAuth } from "firebase/auth";
+import { firebaseApp } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+type User = {
+  id: string;
+  username: string;
+  email: string;
+  profilepic?: string; 
+};
 
 export function CreatePost() {
   const [postContent, setPostContent] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
+  const [users, setUsers] = useState<Record<string, User>>({});
+  const router =useRouter()
   const [dislikedPosts, setDislikedPosts] = useState<string[]>([]);
   const [commentBoxStates, setCommentBoxStates] = useState<{ [key: string]: boolean }>({});
+  const [currentUserProfilePic, setCurrentUserProfilePic] = useState<string | null>(null);
 
   const fetchPosts = async () => {
     try {
@@ -40,10 +53,47 @@ export function CreatePost() {
       setErrorMessage("An error occurred while fetching posts.");
     }
   };
+  const fetchUsers = async () => {
+    try {
+      const usersSnapshot = await getDocs(collection(db, "users"));
+      const usersMap: Record<string, User> = {};
+      usersSnapshot.forEach((doc) => {
+        usersMap[doc.id] = { id: doc.id, ...doc.data() } as User;
+      });
+      setUsers(usersMap);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+  const fetchCurrentUserProfile = useCallback(async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      router.push("/login");
+      return;
+    }
 
+    try {
+      const userDoc = await getDocs(collection(db, "users"));
+      const userData = userDoc.docs.find((doc) => doc.id === currentUser.uid)?.data();
+
+      if (userData && userData.profilepic) {
+        setCurrentUserProfilePic(userData.profilepic);
+      } else {
+        setCurrentUserProfilePic(
+          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      setCurrentUserProfilePic(
+        "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+      );
+    }
+  }, [router]);
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    setLoading(true);
+    Promise.all([fetchPosts(),    fetchCurrentUserProfile(),      fetchUsers()]).finally(() => setLoading(false));
+  }, [fetchCurrentUserProfile]);
 
   const handlePostSubmit = async () => {
     setLoading(true);
@@ -124,8 +174,11 @@ export function CreatePost() {
       <Card className="p-4">
         <div className="flex gap-4">
           <Avatar className="w-10 h-10">
-            <img
-              src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+            <Image
+            loading="lazy"
+              src={currentUserProfilePic || ""}
+              width={100}
+              height={100}
               alt={"User's avatar"}
               className="rounded-full"
             />
@@ -140,7 +193,6 @@ export function CreatePost() {
             <div className="justify-between items-center mt-4 md:flex">
               <div className="flex gap-2">
                 <Button variant="outline" size="sm">
-                  <Image className="h-4 w-4 mr-2" />
                   Add Proof
                 </Button>
                 <Button variant="outline" size="sm">
@@ -159,13 +211,18 @@ export function CreatePost() {
 
       <div className="mt-6">
         {posts.length > 0 ? (
-          posts.map((post) => (
+          posts.map((post) => {
+            const user = users[post.userId];
+            const profilePic = user?.profilepic || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
+            return (
             <Card key={post.id} className="p-4 mb-4">
               <div className="flex gap-4">
                 <Avatar className="w-10 h-10">
-                  <img
-                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-                    alt={"User's avatar"}
+                  <Image
+                      src={profilePic}
+                      height={100}
+                      width={100}
+                      alt={`${user?.username || "Anonymous"}'s avatar`}
                     className="rounded-full"
                   />
                 </Avatar>
@@ -210,7 +267,7 @@ export function CreatePost() {
                     Comment
                   </Button>
                   <Button variant="ghost" size="sm" className="items-center gap-2">
-                    <Image className="h-4 w-4" />
+                    {/* <Image className="h-4 w-4" /> */}
                     Share
                   </Button>
                 
@@ -220,8 +277,10 @@ export function CreatePost() {
                 <div className="mt-4">
                   <div className="flex items-center gap-2">
                     <Avatar className="w-8 h-8">
-                      <img
-                        src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
+                      <Image
+                        src={currentUserProfilePic || ""}
+                        height={100}
+                        width={100}
                         alt="User Avatar"
                         className="rounded-full"
                       />
@@ -236,8 +295,8 @@ export function CreatePost() {
                   </div>
                 </div>
               )}
-            </Card>
-          ))
+            </Card>)
+})
         ) : (
           <div className="flex h-screen justify-center items-center">
             <HashLoader color="white" />

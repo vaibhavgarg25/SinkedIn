@@ -300,7 +300,8 @@ export default function Profile() {
                 <AvatarImage 
                   src={avatarSrc} 
                   alt={`${userData?.username || 'User'}'s avatar`} 
-                  className="rounded-full"
+                  className="rounded-full object-cover"
+                  loading="lazy"
                 />
                 <AvatarFallback>{userData?.username?.[0] || 'U'}</AvatarFallback>
               </Avatar>
@@ -462,6 +463,7 @@ export default function Profile() {
                     alt="Profile Preview"
                     width={5}
                     height={5}
+                    loading="lazy"
                     className="mt-2 w-32 h-32 object-cover rounded-full"
                   />
                 )}
