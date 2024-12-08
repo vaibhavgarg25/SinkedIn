@@ -111,14 +111,11 @@ export function CreatePost() {
   
     try {
       const postRef = doc(db, "posts", postId);
-  
-      // Get the current comments from the document
       const postSnapshot = await getDocs(query(collection(db, "posts"), orderBy("timestamp", "desc")));
       const postDoc = postSnapshot.docs.find((doc) => doc.id === postId);
   
       const postComments = postDoc?.data()?.comments || [];
   
-      // Manually create the timestamp (client-side)
       const newComment = {
         userId: currentUser.uid,
         text: commentText,
@@ -282,7 +279,7 @@ export function CreatePost() {
                 </div>
               </div>
 
-              <hr className="my-4 border-secondary" /> {/* Divider line */}
+              <hr className="my-4 border-secondary" /> 
 
               <div className="flex justify-around text-sm text-gray-500">
                 <motion.div whileTap={{ scale: 0.9 }}>
@@ -314,12 +311,12 @@ export function CreatePost() {
                     Comment
                   </Button>
                   <Button variant="ghost" size="sm" className="items-center gap-2">
-                    {/* <Image className="h-4 w-4" /> */}
+                    
                     Share
                   </Button>
                 
               </div>
-              <hr className="my-4 border-secondary" /> {/* Divider line */}
+              <hr className="my-4 border-secondary" /> 
 
               {commentBoxStates[post.id] && (
                 <div className="mt-4">
@@ -347,12 +344,11 @@ export function CreatePost() {
                   </div>
                 </div>
               )}
-              <hr className="my-4 border-secondary" /> {/* Divider line */}
               {post.comments && post.comments.length > 0 && (
           <div className="mt-4">
             {post.comments.map((comment:any, index:any) => (
-              <div key={index} className="flex items-center gap-2 mt-2 p-2 rounded-md bg-gray-100 dark:bg-slate-300 dark:text-black">
-                <Avatar className="w-8 h-8">
+              <div key={index} className="flex items-center gap-2 mt-2 p-2 rounded-md bg-background">
+                <Avatar className="w-10 h-10">
                   <Image
                     src={users[comment.userId]?.profilepic || "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}
                     width={100}
