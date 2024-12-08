@@ -83,6 +83,7 @@ export function LeftSidebar() {
           <AvatarImage 
             src={displayData.profilepic || "/default-avatar.png"} 
             alt={`${displayData.username}'s avatar`} 
+            loading="lazy"
           />
           <AvatarFallback>{displayData.username.charAt(0)}</AvatarFallback>
         </Avatar>
@@ -90,11 +91,11 @@ export function LeftSidebar() {
           {displayData.username}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {displayData.bio?.length > 80 ? (
+          {    displayData.bio && displayData.bio?.length > 80 ? (
             <>
               {isBioExpanded
                 ? displayData.bio
-                : displayData.bio.slice(0, 80) + "..."}
+                : displayData.bio?.slice(0, 80) + "..."}
               <button
                 className="ml-1 text-primary text-sm focus:outline-none"
                 onClick={toggleBio}
@@ -106,7 +107,6 @@ export function LeftSidebar() {
             displayData.bio || "No bio available"
           )}
         </p>
-
         <Link
             href="/profile"
             className={buttonVariants({

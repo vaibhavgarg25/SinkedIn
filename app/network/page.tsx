@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { db } from "@/lib/firebase";
+import Image from "next/image";
 import { collection, getDocs } from "firebase/firestore";
 import { Card } from "@/components/ui/card";
 import { Avatar } from "@/components/ui/avatar";
@@ -15,7 +16,7 @@ type User = {
   id: string;
   username: string;
   email: string;
-  avatar?: string; // Optional field for avatar
+  profilepic?: string; 
 };
 
 export default function NetworkPage() {
@@ -69,11 +70,14 @@ export default function NetworkPage() {
             <Card className="p-4 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex flex-col items-center">
                 <Avatar className="w-24 h-24 mb-4">
-                <img
-  src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-  alt={`${user?.username || "User"}'s avatar`}
-  className="rounded-full"
-/>
+                <Image
+                    src={`${user?.profilepic||"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"}`}
+                    height={100} 
+                    width={100}
+                    loading="lazy"
+                    alt={`${user?.username || "User"}'s avatar`}
+                    className="rounded-full"
+                  />
 
                 </Avatar>
                 <h2 className="text-lg font-semibold">{user.username || "Anonymous"}</h2>
