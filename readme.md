@@ -24,10 +24,10 @@ The world is full of success stories, but what about the lessons learned from fa
 
 ## Contributors
 
-- **Ayush Singh**
-- **Vaibhav Garg**
-- **Supreeth C**
-- **Rudraksha Singh**
+- [**Ayush Singh**](https://github.com/ayush1009208)
+- [**Vaibhav Garg**](https://github.com/vaibhavgarg25)
+- [**Supreeth C**](https://github.com/ShinichiShi)
+- [**Rudraksha Singh**](https://github.com/rudrakshass)
 
 ---
 
@@ -72,4 +72,4 @@ git push origin feature-name
 5)Open a pull request.
 
 # License
-This project is licensed under the <b>MIT License</b>.
+This project is licensed under the [MIT License](LICENSE).
