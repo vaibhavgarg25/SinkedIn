@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export default function FailedJobs() {
@@ -14,9 +15,9 @@ export default function FailedJobs() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-red-600">Failed Jobs: Where Things Go Hilariously Wrong</h1>
-        <p className="text-xl text-gray-600 mt-4">
+      <div className="text-center my-20">
+        <h1 className="text-4xl font-bold text-primary">Failed Jobs: Where Things Go Hilariously Wrong</h1>
+        <p className="text-xl text-secondary mt-4">
           Everyone's had that one day at work where things didn’t quite go as planned. But sometimes, it’s *really* funny. Let's relive those epic moments together.
         </p>
       </div>
@@ -24,45 +25,45 @@ export default function FailedJobs() {
       {/* Job Fails Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {fails.map((fail) => (
-          <div key={fail.id} className="bg-gray-100 p-6 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-200">
+          <div key={fail.id} className="bg-background border border-border p-6 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-200 flex flex-col justify-between">
             <img
               src={fail.image}
               alt={fail.title}
-              className="w-full h-40 object-cover rounded-t-lg mb-4"
+              className="w-full h-auto object-cover rounded-t-lg mb-4"
             />
             <h3 className="font-semibold text-xl mb-2">{fail.title}</h3>
-            <p className="text-gray-700 mb-4">{fail.description}</p>
-            <div className="mt-4 flex justify-between items-center">
-              <Link href={`/failed-jobs/${fail.id}`} className="text-blue-500 hover:underline">Read more</Link>
-              <button className="text-red-500 hover:text-red-600">
-                😂 Laugh
-              </button>
+            <p className="text-secondary mb-4">{fail.description}</p>
+            <div className="mt-auto flex justify-between items-center">
+              <Link href={`/failed-jobs/${fail.id}`} className="text-primary hover:underline">Read more</Link>
+              <Button>
+                Laugh
+              </Button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Epic Fail Leaderboard */}
-      <div className="mt-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">Top 3 Epic Fails</h2>
+
+      <div className="mt-16 text-center">
+        <h2 className="text-3xl font-bold text-primary my-20">Top 3 Epic Fails</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {fails.slice(0, 3).map((fail) => (
-            <div key={fail.id} className="bg-yellow-100 p-4 rounded-lg shadow-md">
-              <img
-                src={fail.image}
-                alt={fail.title}
-                className="w-full h-40 object-cover rounded-t-lg mb-4"
-              />
-              <h3 className="font-semibold text-xl mb-2">{fail.title}</h3>
-              <p className="text-gray-700">{fail.description}</p>
-            </div>
+            <div key={fail.id} className="bg-background border border-border p-6 rounded-lg shadow-xl hover:shadow-2xl transition-all duration-200 flex flex-col justify-between">
+            <img
+              src={fail.image}
+              alt={fail.title}
+              className="w-full h-auto object-cover rounded-t-lg mb-4"
+            />
+            <h3 className="font-semibold text-xl mb-2">{fail.title}</h3>
+            <p className="text-secondary mb-4">{fail.description}</p>
+          </div>
           ))}
         </div>
       </div>
 
-      {/* Share Your Own Fail Section */}
+
       <div className="mt-12 text-center">
-        <Link href="/submit-fail" className="text-xl text-blue-500 hover:underline">
+        <Link href="/submit-fail" className="text-xl text-primary hover:underline">
           Got Your Own Epic Fail? Share It Here!
         </Link>
       </div>
