@@ -497,11 +497,17 @@ export function CreatePost() {
                               [post.id]: e.target.value,
                             }))
                           }
+                          onClick={(event) => {
+                            event.stopPropagation();
+                          }}
                         />
                         <Button
                           size="sm"
                           className="ml-2"
-                          onClick={() => handlePostComment(post.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handlePostComment(post.id)
+                          }}
                         >
                           Post
                         </Button>

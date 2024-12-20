@@ -32,7 +32,7 @@ export default function Home() {
             </Link>
             <Link href="/about">
               <Button variant="outline" size="lg">
-                See Epic Fails
+                How We Sank In
               </Button>
             </Link>
           </div>
