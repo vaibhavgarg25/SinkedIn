@@ -48,7 +48,15 @@ const PostPage = () => {
 
     fetchPost();
   }, [id, router]);
-
+  const handleDislike = (post:any)=>{
+    console.log("nai kiya define")
+  }
+  const handleShare = (post:any)=>{
+    console.log("nai kiya define")
+  }
+  const toggleCommentBox = (post:any)=>{
+    console.log("nai kiya define")
+  }
   const handlePostComment = async () => {
     const currentUser = auth.currentUser;
 
@@ -80,7 +88,7 @@ const PostPage = () => {
         comments: updatedComments,
       });
 
-      setPost((prev) => ({
+      setPost((prev:any) => ({
         ...prev,
         comments: updatedComments,
       }));
