@@ -330,6 +330,10 @@ export function CreatePost() {
     }
   };
 
+  const handlePostClick = async (postId: string) => {
+    window.location.href = `${window.location.origin}/post/${postId}`;
+  }
+
   const toggleCommentBox = (postId: string) => {
     setCommentBoxStates((prev: any) => ({
       ...prev,
@@ -396,7 +400,11 @@ export function CreatePost() {
               user?.profilepic ||
               "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png";
             return (
-              <Card key={post.id} className="p-4 mb-4">
+              <Card 
+                key={post.id} 
+                className="p-4 mb-4"
+                onClick={() => handlePostClick(post.id)}
+                >
                 <div className="flex gap-4">
                   <Avatar className="w-10 h-10">
                     <Image
@@ -423,7 +431,10 @@ export function CreatePost() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDislike(post.id)}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleDislike(post.id);
+                      }}
                       className="flex items-center gap-2"
                     >
                       <ThumbsDown
@@ -440,7 +451,10 @@ export function CreatePost() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleCommentBox(post.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleCommentBox(post.id)
+                    }}
                     className="flex items-center gap-2"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -449,7 +463,10 @@ export function CreatePost() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleShare(post.id)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleShare(post.id)
+                    }}
                     className="flex items-center gap-2"
                   >
                     <Link2 className="h-4 w-4" />
